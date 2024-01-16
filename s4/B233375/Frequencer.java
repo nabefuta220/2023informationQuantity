@@ -99,7 +99,7 @@ public class Frequencer implements FrequencerInterface {
 
     // I know that here is a potential problem in the declaration.
     @Override
-    public int subByteFrequency(int start, int length) {
+    public int subByteFrequency(int start, int end) {
         // Not yet implemented, but it should be defined as specified.
         return -1;
     }

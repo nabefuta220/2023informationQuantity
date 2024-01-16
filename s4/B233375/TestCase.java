@@ -119,12 +119,21 @@ public class TestCase {
 			testEstimation("a", "", 0.0);// target length ==0
 			testEstimation("abc", "def", Double.MAX_VALUE);
 			// sub byteに対するテスト
-			testFrequencerWithRange("3210321001230123", "0", 0, 16, 4);// 全範囲
-			testFrequencerWithRange("3210321001230123", "0", 3, 4, 1);// 範囲が1
-			testFrequencerWithRange("3210321001230123", "0", 3, 3, 0);// 範囲が0
-			testFrequencerWithRange("3210321001230123", "0", -1, 3, -2);// 始点が範囲外
-			testFrequencerWithRange("3210321001230123", "0", 3, 400, -2);// 終点が範囲外
-			testFrequencerWithRange("3210321001230123", "0", 4, 3, -2);// 始点と終点が入れ替わる
+			testFrequencerWithRange("3210321001230123", "3210321001230123", 0, 16, 1);// 全範囲
+			testFrequencerWithRange("3210321001230123", "3210321001230123", 3, 4, 4);// 範囲が1
+			testFrequencerWithRange("3210321001230123", "3210321001230123", 3, 5, 1);// 範囲が2
+			testFrequencerWithRange("3210321001230123", "3210321001230123", 1, 3, 2);// 範囲が2
+			// slow/TestCaseから拝借
+			testFrequencer("AAA", "", -1);
+			testFrequencer("", "A", 0);
+			testFrequencer("AAA", "A", 3);
+			testFrequencer("AAA", "AA", 2);
+			testFrequencer("AAA", "AAA", 1);
+			testFrequencer("AAA", "AAAA", 0);
+			testFrequencerWithRange("AAAB", "AAAAB", 0, 1, 3);
+			testFrequencerWithRange("AAAB", "AAAAB", 1, 2, 3);
+			testFrequencerWithRange("AAAB", "AAAAB", 1, 3, 2);
+			testFrequencerWithRange("AAAB", "AAAAB", 4, 5, 1);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception occurred in InformationEstimator Object");

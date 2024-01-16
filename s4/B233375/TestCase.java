@@ -118,8 +118,13 @@ public class TestCase {
 			}
 			testEstimation("a", "", 0.0);// target length ==0
 			testEstimation("abc", "def", Double.MAX_VALUE);
-			//sub byteに対するテスト
-			testFrequencerWithRange("3210321001230123","0",0,16,4);
+			// sub byteに対するテスト
+			testFrequencerWithRange("3210321001230123", "0", 0, 16, 4);// 全範囲
+			testFrequencerWithRange("3210321001230123", "0", 3, 4, 1);// 範囲が1
+			testFrequencerWithRange("3210321001230123", "0", 3, 3, 0);// 範囲が0
+			testFrequencerWithRange("3210321001230123", "0", -1, 3, -2);// 始点が範囲外
+			testFrequencerWithRange("3210321001230123", "0", 3, 400, -2);// 終点が範囲外
+			testFrequencerWithRange("3210321001230123", "0", 4, 3, -2);// 始点と終点が入れ替わる
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception occurred in InformationEstimator Object");
@@ -146,7 +151,7 @@ public class TestCase {
 		executer.setSpace(space.getBytes());
 		executer.setTarget(target.getBytes());
 		int freq = executer.subByteFrequency(start, end);
-		assert freq == excepted : space + ", with [" + start + "," + end + ") ," + target + ": " + freq;
+		assert freq == excepted : space + ", with [" + start + "," + end + ") , " + target + " : " + freq;
 
 	}
 

@@ -97,27 +97,29 @@ public class TestCase {
 			// spaceが未設定時
 			{
 				InformationEstimatorInterface noSpace = new InformationEstimator();
-				//myObject.setSpace("3210321001230123".getBytes());
+				// myObject.setSpace("3210321001230123".getBytes());
 				noSpace.setTarget("0".getBytes());
 				double iq = noSpace.estimation();
 				assert (iq == Double.MAX_VALUE) : "Test Case Failed: Space not set";
 			}
-			//space長が0
-				{
-			InformationEstimatorInterface zeroSpace = new InformationEstimator();
-			zeroSpace.setSpace("".getBytes());
-			zeroSpace.setTarget("0".getBytes());
-			double iq = zeroSpace.estimation();
+			// space長が0
+			{
+				InformationEstimatorInterface zeroSpace = new InformationEstimator();
+				zeroSpace.setSpace("".getBytes());
+				zeroSpace.setTarget("0".getBytes());
+				double iq = zeroSpace.estimation();
 			}
 			// targetが未設定時
 			{
-			InformationEstimatorInterface noTarget = new InformationEstimator();
-			noTarget.setSpace("3210321001230123".getBytes());
-			double iq = noTarget.estimation();
-			assert (iq > -0.0001) && ( 0.0001> iq): "Test Case Failed: target not set";
+				InformationEstimatorInterface noTarget = new InformationEstimator();
+				noTarget.setSpace("3210321001230123".getBytes());
+				double iq = noTarget.estimation();
+				assert (iq > -0.0001) && (0.0001 > iq) : "Test Case Failed: target not set";
 			}
-			testEstimation("a", "", 0.0);//target length ==0
+			testEstimation("a", "", 0.0);// target length ==0
 			testEstimation("abc", "def", Double.MAX_VALUE);
+			//sub byteに対するテスト
+			testFrequencerWithRange("3210321001230123","0",0,16,4);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception occurred in InformationEstimator Object");
@@ -138,13 +140,24 @@ public class TestCase {
 
 	}
 
+	public static void testFrequencerWithRange(String space, String target, int start, int end, int excepted)
+			throws Exception {
+		FrequencerInterface executer = new Frequencer();
+		executer.setSpace(space.getBytes());
+		executer.setTarget(target.getBytes());
+		int freq = executer.subByteFrequency(start, end);
+		assert freq == excepted : space + ", with [" + start + "," + end + ") ," + target + ": " + freq;
+
+	}
+
 	public static void testEstimation(String space, String target, double excepted)
 			throws Exception {
-		double esp = 0.0001;//許容誤差
+		double esp = 0.0001;// 許容誤差
 		InformationEstimatorInterface estimator = new InformationEstimator();
 		estimator.setSpace(space.getBytes());
 		estimator.setTarget(target.getBytes());
-		double iq= estimator.estimation();
-		assert (excepted - esp <= iq && iq <= excepted + esp )		: "IQ for "+target+" in "+space+" should be "+ excepted+". But it returns " + iq;
+		double iq = estimator.estimation();
+		assert (excepted - esp <= iq && iq <= excepted + esp)
+				: "IQ for " + target + " in " + space + " should be " + excepted + ". But it returns " + iq;
 	}
 }

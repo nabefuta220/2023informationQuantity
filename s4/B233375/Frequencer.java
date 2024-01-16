@@ -115,15 +115,15 @@ public class Frequencer implements FrequencerInterface {
             System.err.println("space not set");
             return 0;
         }
-        int targetLength = myTarget.length;// not set の場合はnull pointerに
+        int targetLength = end-start;// not set の場合はnull pointerに
         int spaceLength = mySpace.length;// not set の場合は null pointer に
         // TARGETの長さが0でないかを確認する
-        if (targetLength == 0) {
+        if (end-start == 0) {
             System.err.println("target length is 0");
             return -1;
         }
         // space の長さが0でないかを確認する
-        if (end-start == 0) {
+        if (spaceLength == 0) {
             System.err.println("space length is 0");
             return 0;
         }
@@ -132,7 +132,7 @@ public class Frequencer implements FrequencerInterface {
             System.err.println("range invalid");
             return -2;
         }
-        if (end > spaceLength) {
+        if (end > myTarget.length) {
             System.err.println("end value is invalid");
             return -2;
         }
@@ -147,12 +147,11 @@ public class Frequencer implements FrequencerInterface {
 
         // space ab(2) -> 0 : i=0 : i< space length - target length
         // target ab(2)
-        System.err.println("search start");
-        for (int in_start =start; in_start <= end - targetLength; in_start++) { // Is it OK?
+        for (int in_start =0; in_start <= spaceLength - targetLength; in_start++) { // Is it OK?
                                                                             // //開始地点(0文字目からtargetの最後がspaceの最後に一致するまで)
             boolean abort = false;// 先頭からみて文字が一致していているか
-            for (int i = 0; i < targetLength; i++) {
-                if (myTarget[i] != mySpace[in_start + i]) {// 文字が一致していなかったら
+            for (int i = start; i < end; i++) {
+                if (myTarget[i] != mySpace[in_start + i-start]) {// 文字が一致していなかったら
                     abort = true;// 中断+先頭を次に移す
                     break;
                 }
@@ -178,6 +177,9 @@ public class Frequencer implements FrequencerInterface {
             myObject.setSpace("Hi Ho Hi Ho".getBytes());
             myObject.setTarget("H".getBytes());
             freq = myObject.frequency();
+            myObject.setSpace("3210321001230123".getBytes());
+            myObject.setTarget("3210321001230123".getBytes());
+            myObject.subByteFrequency(0, 16);
         } catch (Exception e) {
             System.out.println("Exception occurred: STOP");
             e.printStackTrace();

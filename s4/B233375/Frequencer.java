@@ -100,6 +100,7 @@ public class Frequencer implements FrequencerInterface {
     // I know that here is a potential problem in the declaration.
     @Override
     public int subByteFrequency(int start, int end) {
+        // dev note : Frequencyの内容を利用
         // Not yet implemented, but it should be defined as specified.
         // 半開区間での出現数を求める
         // 始点・終点が不正なものは未定義でよい

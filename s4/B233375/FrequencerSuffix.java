@@ -23,8 +23,9 @@ public class FrequencerSuffix implements FrequencerInterface {
 	byte[] mySpace;
 	boolean targetReady = false;
 	boolean spaceReady = false;
-
+	private int spaceLength = 0;
 	int[] suffixArray; // Suffix Arrayの実装に使うデータの型をint []とせよ。
+	// 辞書順の早いものを最初に持っていく
 
 	// The variable, "suffixArray" is the sorted array of all suffixes of mySpace.
 	// Each suffix is expressed by a integer, which is the starting position in
@@ -50,6 +51,7 @@ public class FrequencerSuffix implements FrequencerInterface {
 	}
 
 	private int suffixCompare(int i, int j) {
+
 		// suffixCompareはソートのための比較メソッドである。
 		// 次のように定義せよ。
 		//
@@ -70,18 +72,42 @@ public class FrequencerSuffix implements FrequencerInterface {
 
 		// ここにコードを記述せよ
 		//
+		int short_letter = i < j ? j : i;// 文字数が短い文字
+		int res = 0;// 比較結果
+		int in_current = 0;// 現在見ている文字
+
+		while (res == 0) {
+			// 範囲かどうか見る
+			if (short_letter + in_current >= spaceLength) {// 表示範囲を超える
+				res = j - i;
+				break;
+			}
+			// 大小比較
+			res = mySpace[i + in_current] - mySpace[j + in_current];
+			++in_current;
+		}
+
+		if (res > 0) {
+			// System.err.printf("%d > %d\n", i, j);
+			return 1;
+		} else if (res < 0) {
+			// System.err.printf("%d < %d\n", i, j);
+			return -1;
+		}
+		// System.err.printf("%d = %d\n", i, j);
 		return 0; // この行は変更しなければいけない。
 	}
 
 	public void setSpace(byte[] space) {
 		// suffixArrayの前処理は、setSpaceで定義せよ。
 		mySpace = space;
-		if (mySpace.length > 0)
+		spaceLength = mySpace.length;
+		if (spaceLength > 0)
 			spaceReady = true;
 		// First, create unsorted suffix array.
-		suffixArray = new int[space.length];
+		suffixArray = new int[spaceLength];
 		// put all suffixes in suffixArray.
-		for (int i = 0; i < space.length; i++) {
+		for (int i = 0; i < spaceLength; i++) {
 			suffixArray[i] = i; // Please note that each suffix is expressed by one integer.
 		}
 		//
@@ -100,6 +126,22 @@ public class FrequencerSuffix implements FrequencerInterface {
 		// suffixArray[ 1]= 1:BA
 		// suffixArray[ 2]= 0:CBA
 		// のようになるべきである。
+
+		// sort by バブルソート
+		boolean search_done = true;
+		int cnt;
+		do {// 辞書順は広義単調増加(1が出ないようにする)
+			search_done = true;
+			for (int i = 0; i < spaceLength - 1; i++) {
+				if (suffixCompare(suffixArray[i], suffixArray[i + 1]) == 1) {
+					search_done = false;
+					// swap
+					cnt = suffixArray[i];
+					suffixArray[i] = suffixArray[i + 1];
+					suffixArray[i + 1] = cnt;
+				}
+			}
+		} while (search_done == false);
 	}
 
 	// ここから始まり、指定する範囲までは変更してはならないコードである。
@@ -141,7 +183,7 @@ public class FrequencerSuffix implements FrequencerInterface {
 		// 演習の内容は、適切なsubByteStartIndexとsubByteEndIndexを定義することである。
 		int first = subByteStartIndex(start, end);
 		int last1 = subByteEndIndex(start, end);
-		return last1 - first;
+		return last1 - first;// 半開区間で定義すれば良さそう
 	}
 	// 変更してはいけないコードはここまで。
 

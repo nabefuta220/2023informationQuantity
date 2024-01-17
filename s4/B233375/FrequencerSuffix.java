@@ -227,10 +227,10 @@ public class FrequencerSuffix implements FrequencerInterface {
 		//
 		// サイズをtargetの長さに制限して、文字列比較?
 		int comp_targetLength = k - j;
-		int comp_spaceLength = spaceLength - i;
+		int comp_spaceLength = spaceLength - suffixArray[i];
 		int res = 0;// 比較結果
 		int in_current = 0;// 現在見ている文字
-		int short_letter_length = comp_targetLength < comp_spaceLength ? comp_spaceLength : comp_targetLength;// 文字数が短い方の文字数
+		int short_letter_length = comp_targetLength < comp_spaceLength ? comp_targetLength : comp_spaceLength;// 文字数が短い方の文字数
 		while (res == 0) {
 			if (in_current >= short_letter_length) {// どちらかの最終文字を超えた時
 				if (comp_spaceLength < comp_targetLength) {
@@ -238,7 +238,8 @@ public class FrequencerSuffix implements FrequencerInterface {
 				}
 				return 0;
 			}
-			res = mySpace[i + in_current] - myTarget[j + in_current];
+			res = mySpace[suffixArray[i] + in_current] - myTarget[j + in_current];
+
 			++in_current;
 		}
 		if (res > 0) {
@@ -278,7 +279,11 @@ public class FrequencerSuffix implements FrequencerInterface {
 		//
 		// ここにコードを記述せよ。
 		//
-		return suffixArray.length; // このコードは変更しなければならない。
+		int res;
+		for (res = 0; res < spaceLength && (targetCompare(res, start, end) == -1); ++res) {
+
+		}
+		return res; // このコードは変更しなければならない。
 	}
 
 	private int subByteEndIndex(int start, int end) {
@@ -309,9 +314,11 @@ public class FrequencerSuffix implements FrequencerInterface {
 		// Assuming the suffix array is created from "Hi Ho Hi Ho",
 		// if target_start_end is"i", it will return 9 for "Hi Ho Hi Ho".
 		//
-		// ここにコードを記述せよ
-		//
-		return suffixArray.length; // この行は変更しなければならない、
+		int res;
+		for (res = spaceLength - 1; res >= 0 && (targetCompare(res, start, end) == 1); --res) {
+
+		}
+		return res + 1; // このコードは変更しなければならない。
 	}
 
 	// Suffix Arrayを使ったプログラムのホワイトテストは、
@@ -330,12 +337,44 @@ public class FrequencerSuffix implements FrequencerInterface {
 			frequencerObject = new FrequencerSuffix();
 			frequencerObject.setSpace("ABC".getBytes());
 			frequencerObject.printSuffixArray();
+			// test for suffix array of ABC (ABC , BC ,A -> 0,1,2)
+			int[] expect_suffix_abc = { 0, 1, 2 };
+			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
+				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_abc[i],
+						frequencerObject.suffixArray[i]);
+				if (expect_suffix_abc[i] != frequencerObject.suffixArray[i]) {
+					System.err.println("ng");
+				} else {
+					System.err.println("ok");
+				}
+			}
 			frequencerObject = new FrequencerSuffix();
 			frequencerObject.setSpace("CBA".getBytes());
 			frequencerObject.printSuffixArray();
+			int[] expect_suffix_cba = { 2, 1, 0 };// A BA CBA
+			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
+				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_cba[i],
+						frequencerObject.suffixArray[i]);
+				if (expect_suffix_cba[i] != frequencerObject.suffixArray[i]) {
+					System.err.println("ng");
+				} else {
+					System.err.println("ok");
+				}
+			}
 			frequencerObject = new FrequencerSuffix();
 			frequencerObject.setSpace("HHH".getBytes());
 			frequencerObject.printSuffixArray();
+			int[] expect_suffix_hhh = { 2, 1, 0 };// H HH HHH
+			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
+				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_hhh[i],
+						frequencerObject.suffixArray[i]);
+				if (expect_suffix_hhh[i] != frequencerObject.suffixArray[i]) {
+					System.err.println("ng");
+				} else {
+					System.err.println("ok");
+				}
+			}
+			System.out.println();
 			frequencerObject = new FrequencerSuffix();
 			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
 			frequencerObject.printSuffixArray();
@@ -352,21 +391,68 @@ public class FrequencerSuffix implements FrequencerInterface {
 			 * 8:i Ho Hi Ho
 			 * 9:o
 			 * 10:o Hi Ho
-			 */
-
+			 */ int[] expect_suffix_long = { 5, 8, 2, 6, 0, 9, 3, 7, 1, 10, 4 };// H HH HHH
+			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
+				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_long[i],
+						frequencerObject.suffixArray[i]);
+				if (expect_suffix_long[i] != frequencerObject.suffixArray[i]) {
+					System.err.println("ng");
+				} else {
+					System.err.println("ok");
+				}
+			}
+			// 1文字でのテスト
+			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+			frequencerObject.printSuffixArray();
 			frequencerObject.setTarget("H".getBytes());
-			//
-			// **** Please write code to check subByteStartIndex, and subByteEndIndex
-			//
-
 			int result = frequencerObject.frequency();
+			int except_value = 4;
+			System.out.print(frequencerObject.myTarget.toString() + " in " + frequencerObject.mySpace.toString()
+					+ " : Freq = " + result + " ");
+			if (except_value == result) {
+				System.out.println("OK");
+			} else {
+				System.out.println("WRONG");
+			}
+			//2文字でのテスト
+			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
+			frequencerObject.printSuffixArray();
+			frequencerObject.setTarget("Hi".getBytes());
+			result = frequencerObject.frequency();
+			except_value = 2;
 			System.out.print("Freq = " + result + " ");
-			if (4 == result) {
+			if (except_value == result) {
+				System.out.println("OK");
+			} else {
+				System.out.println("WRONG");
+			}
+			//探索地点が終点を超えるときのテスト
+			frequencerObject.setTarget("z".getBytes());
+			result = frequencerObject.frequency();
+			except_value = 2;
+			System.out.print("Freq = " + result + " ");
+			if ((except_value == result) && (frequencerObject.subByteEndIndex(0,
+					frequencerObject.mySpace.length) == frequencerObject.mySpace.length + 1)) {
+				System.out.println("OK");
+			} else {
+				System.out.println("WRONG value : " + result + " end pos : " + frequencerObject.subByteEndIndex(0,
+						frequencerObject.mySpace.length));
+			}
+			//探索位置が始点のときのテスト
+			frequencerObject.setSpace("hello".getBytes());
+			frequencerObject.printSuffixArray();
+			frequencerObject.setTarget("a".getBytes());
+			result = frequencerObject.frequency();
+			except_value = 0;
+			System.out.print("Freq = " + result + " ");
+			if ((except_value == result) && (frequencerObject.subByteStartIndex(0,
+					frequencerObject.mySpace.length) == 0)) {
 				System.out.println("OK");
 			} else {
 				System.out.println("WRONG");
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("STOP");
 		}
 	}

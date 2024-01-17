@@ -190,11 +190,12 @@ public class FrequencerSuffix implements FrequencerInterface {
 	private int targetCompare(int i, int j, int k) {
 		// subByteStartIndexとsubByteEndIndexを定義するときに使う比較関数。
 		// 次のように定義せよ。
-		// suffix_i is a string starting with the position i in "byte [] mySpace".
+		// suffix_i is a string starting with the position i in "byte [] mySpace".:
+		// mySpace[i,mySpace.length)
 		// When mySpace is "ABCD", suffix_0 is "ABCD", suffix_1 is "BCD",
 		// suffix_2 is "CD", and sufffix_3 is "D".
 		// target_j_k is a string in myTarget start at j-th postion ending k-th
-		// position.
+		// position. : myTarget[j,k)
 		// if myTarget is "ABCD",
 		// j=0, and k=1 means that target_j_k is "A".
 		// j=1, and k=3 means that target_j_k is "BC".
@@ -224,11 +225,30 @@ public class FrequencerSuffix implements FrequencerInterface {
 		//
 		// ここに比較のコードを書け
 		//
-		return 0; // この行は変更しなければならない。
+		// サイズをtargetの長さに制限して、文字列比較?
+		int comp_targetLength = k - j;
+		int comp_spaceLength = spaceLength - i;
+		int res = 0;// 比較結果
+		int in_current = 0;// 現在見ている文字
+		int short_letter_length = comp_targetLength < comp_spaceLength ? comp_spaceLength : comp_targetLength;// 文字数が短い方の文字数
+		while (res == 0) {
+			if (in_current >= short_letter_length) {// どちらかの最終文字を超えた時
+				if (comp_spaceLength < comp_targetLength) {
+					return -1;
+				}
+				return 0;
+			}
+			res = mySpace[i + in_current] - myTarget[j + in_current];
+			++in_current;
+		}
+		if (res > 0) {
+			return 1;
+		}
+		return -1; // この行は変更しなければならない。
 	}
 
 	private int subByteStartIndex(int start, int end) {
-		// suffix arrayのなかで、目的の文字列の出現が始まる位置を求めるメソッド
+		// suffix arrayのなかで、目的の文字列の出現が始まる位置を求めるメソッド=lowerbound
 		// 以下のように定義せよ。
 		// The meaning of start and end is the same as subByteFrequency.
 		/*
@@ -262,7 +282,7 @@ public class FrequencerSuffix implements FrequencerInterface {
 	}
 
 	private int subByteEndIndex(int start, int end) {
-		// suffix arrayのなかで、目的の文字列の出現しなくなる場所を求めるメソッド
+		// suffix arrayのなかで、目的の文字列の出現しなくなる場所を求めるメソッド=upper bound
 		// 以下のように定義せよ。
 		// The meaning of start and end is the same as subByteFrequency.
 		/*

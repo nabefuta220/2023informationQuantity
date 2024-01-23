@@ -39,8 +39,7 @@ public class TestCase {
 	static String str = "";
 
 	public static void main(String[] args) {
-		FrequencerInterface targetFreq = new Frequencer();
-		InformationEstimator targetInfo = new InformationEstimator();
+
 		// ファイルの読み込み
 		String space1 = "", spacer1 = "", target10 = "", target16 = "", target22 = "";
 		try {
@@ -104,30 +103,30 @@ public class TestCase {
 			testFrequencerWithRange("AAAB", "AAAAB", 1, 3, 2);
 			testFrequencerWithRange("AAAB", "AAAAB", 4, 5, 1);
 			// 愚直ケースとの比較
-			testFrequencerWithDiff("AAA", "", targetFreq);
-			testFrequencerWithDiff("", "A", targetFreq);
-			testFrequencerWithDiff("AAA", "A", targetFreq);
-			testFrequencerWithDiff("AAA", "AA", targetFreq);
-			testFrequencerWithDiff("AAA", "AAA", targetFreq);
-			testFrequencerWithDiff("AAA", "AAAA", targetFreq);
+			testFrequencerWithDiff("AAA", "");
+			testFrequencerWithDiff("", "A");
+			testFrequencerWithDiff("AAA", "A");
+			testFrequencerWithDiff("AAA", "AA");
+			testFrequencerWithDiff("AAA", "AAA");
+			testFrequencerWithDiff("AAA", "AAAA");
 
 			// ファイルとの比較
-			// space1="",spacer1,target10,target16,target22;	
+			// space1="",spacer1,target10,target16,target22;
 			System.out.println("diff with file...");
-			testFrequencerWithDiff(space1, target10, targetFreq);
+			testFrequencerWithDiff(space1, target10);
 			System.out.println("checking...");
-			testFrequencerWithDiff(space1, target16, targetFreq);
+			testFrequencerWithDiff(space1, target16);
 			System.out.println("checking...");
-			testFrequencerWithDiff(space1, target22, targetFreq);
+			testFrequencerWithDiff(space1, target22);
 			System.out.println("checking...");
 
-			testFrequencerWithDiff(spacer1, target10, targetFreq);
+			testFrequencerWithDiff(spacer1, target10);
 			System.out.println("checking...");
-			testFrequencerWithDiff(spacer1, target16, targetFreq);
+			testFrequencerWithDiff(spacer1, target16);
 			System.out.println("checking...");
-			testFrequencerWithDiff(spacer1, target22, targetFreq);
+			testFrequencerWithDiff(spacer1, target22);
 			System.out.println("checking...");
-			testFrequencerWithDiff(space1, space1, targetFreq);
+			testFrequencerWithDiff(space1, space1);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception occurred in Frequencer Object");
@@ -141,13 +140,12 @@ public class TestCase {
 			myObject = new InformationEstimator();
 			myObject.setSpace("3210321001230123".getBytes());
 			myObject.setTarget("0".getBytes());
-			
+
 			value = myObject.estimation();
 			assert (value > 1.9999) && (2.0001 > value)
 					: "IQ for 0 in 3210321001230123 should be 2.0. But it returns " + value;
 			myObject.setTarget("01".getBytes());
 
-	
 			value = myObject.estimation();
 			assert (value > 2.9999) && (3.0001 > value)
 					: "IQ for 01 in 3210321001230123 should be 3.0. But it returns " + value;
@@ -157,7 +155,7 @@ public class TestCase {
 			assert (value > 2.9999) && (3.0001 > value)
 					: "IQ for 0123 in 3210321001230123 should be 3.0. But it returns " + value;
 			myObject.setTarget("00".getBytes());
-		
+
 			value = myObject.estimation();
 
 			assert (value > 3.9999) && (4.0001 > value)
@@ -186,20 +184,19 @@ public class TestCase {
 			}
 			testEstimation("a", "", 0.0);// target length ==0
 			testEstimation("abc", "def", Double.MAX_VALUE);
-			
+
 			// ファイルとの比較
 			// space1="",spacer1,target10,target16,target22;
 			System.out.println("diff with file");
-			testEstimationWithDiff(space1, target10, targetInfo);
+			testEstimationWithDiff(space1, target10);
 			System.out.println("checking...");
-			testEstimationWithDiff(space1, target16, targetInfo);
+			testEstimationWithDiff(space1, target16);
 			System.out.println("checking...");
-		
-			testEstimationWithDiff(spacer1, target10, targetInfo);
-			System.out.println("checking...");
-			testEstimationWithDiff(spacer1, target16, targetInfo);
 
-	
+			testEstimationWithDiff(spacer1, target10);
+			System.out.println("checking...");
+			testEstimationWithDiff(spacer1, target16);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception occurred in InformationEstimator Object");
@@ -249,10 +246,10 @@ public class TestCase {
 				: "IQ for " + target + " in " + space + " should be " + excepted + ". But it returns " + iq;
 	}
 
-	public static void testFrequencerWithDiff(String space, String target, FrequencerInterface test)
+	public static void testFrequencerWithDiff(String space, String target)
 			throws Exception {
 		FrequencerInterface executerBase = new FrequencerNaive();
-
+		FrequencerInterface test = new Frequencer();
 		executerBase.setSpace(space.getBytes());
 		executerBase.setTarget(target.getBytes());
 		test.setSpace(space.getBytes());
@@ -263,10 +260,11 @@ public class TestCase {
 
 	}
 
-	public static void testEstimationWithDiff(String space, String target, InformationEstimatorInterface test)
+	public static void testEstimationWithDiff(String space, String target)
 			throws Exception {
 		double esp = 0.0001;// 許容誤差
 		InformationEstimatorInterface estimatorBase = new InformationEstimatorNaive();
+		InformationEstimatorInterface test = new InformationEstimator();
 		estimatorBase.setSpace(space.getBytes());
 		estimatorBase.setTarget(target.getBytes());
 		test.setSpace(space.getBytes());

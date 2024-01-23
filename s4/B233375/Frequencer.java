@@ -104,6 +104,7 @@ public class Frequencer implements FrequencerInterface {
         spaceLength = mySpace.length;
         if (spaceLength > 0)
             spaceReady = true;
+
         // First, create unsorted suffix array.
         suffixArray = new int[spaceLength];
         // put all suffixes in suffixArray.
@@ -328,8 +329,12 @@ public class Frequencer implements FrequencerInterface {
         //
         // int res; for (res = 0; res < spaceLength && (targetCompare(res, start, end)
         // == -1); ++res) { }
-
+        // 範囲が1以下のときは左端を返す
+      
         int left = 0, right = spaceLength, middle;
+        if (right - left <= 0) {
+            return left;
+        }
         if (targetCompare(left, start, end) != -1) {// 右端は明らかに対象よりも後に来るので、左端が対象よりも先に来ることを確認
             return left;// もし、対象と同じか、その後に来るなら、全部対象の後に来ることが分かるので、左端を返す
         }
@@ -379,7 +384,11 @@ public class Frequencer implements FrequencerInterface {
         //
         // int res; for (res = spaceLength - 1; res >= 0 && (targetCompare(res, start,
         // end) == 1); --res) {}
+    
         int left = 0, right = spaceLength, middle;
+        if (right - left <= 0) {
+            return left;
+        }
         if (targetCompare(left, start, end) == 1) {// 右端は明らかに対象の後に来るので、左端が対象と同じかその前に来ることを確認する
             return left;// もし対象の後に後にくるならば、すべてが対象の後ろに来ることが明らかなので左端を返す
         }
@@ -493,7 +502,7 @@ public class Frequencer implements FrequencerInterface {
             }
             // 2文字でのテスト
             frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            System.out.println("space length:"+frequencerObject.mySpace.length);
+            System.out.println("space length:" + frequencerObject.mySpace.length);
             frequencerObject.printSuffixArray();
             frequencerObject.setTarget("Hi".getBytes());
             result = frequencerObject.frequency();
@@ -502,7 +511,7 @@ public class Frequencer implements FrequencerInterface {
             if (except_value == result) {
                 System.out.println("OK");
             } else {
-                System.out.println("WRONG ,value="+result);
+                System.out.println("WRONG ,value=" + result);
             }
             // 探索地点が終点を超えるときのテスト
             frequencerObject.setTarget("z".getBytes());

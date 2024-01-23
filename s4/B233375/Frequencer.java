@@ -326,11 +326,27 @@ public class Frequencer implements FrequencerInterface {
         //
         // ここにコードを記述せよ。
         //
-        int res;
-        for (res = 0; res < spaceLength && (targetCompare(res, start, end) == -1); ++res) {
+        // int res; for (res = 0; res < spaceLength && (targetCompare(res, start, end)
+        // == -1); ++res) { }
 
+        int left = 0, right = spaceLength, middle;
+        if (targetCompare(left, start, end) != -1) {// 右端は明らかに対象よりも後に来るので、左端が対象よりも先に来ることを確認
+            return left;// もし、対象と同じか、その後に来るなら、全部対象の後に来ることが分かるので、左端を返す
         }
-        return res; // このコードは変更しなければならない。
+
+        int comp;
+        do {
+            // 左端は対象よりも前に、右端は対象と同じか後ろに来るように持つ
+            middle = left + (right - left) / 2;
+            comp = targetCompare(middle, start, end);
+            if (comp == -1) {// 中央が対象より先に来るか、後に来るかで場合分け
+                left = middle;
+            } else {
+                right = middle;
+            }
+
+        } while (right - left >= 2);// 幅が最小になるまで繰り返す
+        return right; // 右端は対象と同じかその後に来る
     }
 
     private int subByteEndIndex(int start, int end) {
@@ -361,11 +377,25 @@ public class Frequencer implements FrequencerInterface {
         // Assuming the suffix array is created from "Hi Ho Hi Ho",
         // if target_start_end is"i", it will return 9 for "Hi Ho Hi Ho".
         //
-        int res;
-        for (res = spaceLength - 1; res >= 0 && (targetCompare(res, start, end) == 1); --res) {
-
+        // int res; for (res = spaceLength - 1; res >= 0 && (targetCompare(res, start,
+        // end) == 1); --res) {}
+        int left = 0, right = spaceLength, middle;
+        if (targetCompare(left, start, end) == 1) {// 右端は明らかに対象の後に来るので、左端が対象と同じかその前に来ることを確認する
+            return left;// もし対象の後に後にくるならば、すべてが対象の後ろに来ることが明らかなので左端を返す
         }
-        return res + 1; // このコードは変更しなければならない。
+        int comp;
+        do {
+            // 左端は対象と同じかより前に来るように、右端は対象の後ろに来るように持っておく
+            middle = left + (right - left) / 2;
+            comp = targetCompare(middle, start, end);
+            if (comp == 1) {
+                right = middle;
+            } else {
+                left = middle;
+            }
+
+        } while (right - left >= 2);// 幅が最小になるまで繰り返す
+        return right; // 右端は対象よりも後に来るはず
     }
 
     // Suffix Arrayを使ったプログラムのホワイトテストは、

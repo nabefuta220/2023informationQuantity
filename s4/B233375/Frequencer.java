@@ -127,23 +127,70 @@ public class Frequencer implements FrequencerInterface {
         // suffixArray[ 2]= 0:CBA
         // のようになるべきである。
 
-        // sort by バブルソート
-        boolean search_done = true;
-        int cnt;
-        do {// 辞書順は広義単調増加(1が出ないようにする)
-            search_done = true;
-            for (int i = 0; i < spaceLength - 1; i++) {
-                if (suffixCompare(suffixArray[i], suffixArray[i + 1]) == 1) {
-                    search_done = false;
-                    // swap
-                    cnt = suffixArray[i];
-                    suffixArray[i] = suffixArray[i + 1];
-                    suffixArray[i + 1] = cnt;
-                }
-            }
-        } while (search_done == false);
+        // sort by マージソート
+        /// 辞書順は広義単調増加(1が出ないようにする)
+        MargeSort(0, spaceLength);
     }
 
+    /**
+     * 半開区間[left,right)をマージソートでマージを行う
+     */
+    private void MargeSort(int left, int right) {
+        if (left + 1 >= right) {// 幅が1以下
+            return;
+        }
+        if (left + 2 == right) {// 幅が2
+            if (suffixCompare(left, left + 1) == 1) {// swap
+                int tmpValue1 = suffixArray[left];
+                int tmpValue2 = suffixArray[left + 1];
+                suffixArray[left] = tmpValue2;
+                suffixArray[left + 1] = tmpValue1;
+            }
+            return;
+        }
+        int length = right - left;
+        int halfLength = length / 2;
+        int middle = left + halfLength;
+
+        MargeSort(left, middle);// 前半
+        MargeSort(middle, right);// 後半
+
+        // 一旦退避
+        int tmp[] = new int[length];
+        int count = 0;
+        for (int i = left; i < right; ++i) {
+            tmp[count++] = this.suffixArray[i];
+        }
+
+        int leftAt = 0, rightAt = halfLength;
+        count = left;
+
+        while (leftAt < halfLength && rightAt < length) {
+
+            if (suffixCompare(tmp[leftAt], tmp[rightAt]) == 1) {
+                suffixArray[count] = tmp[rightAt++];
+                tmp[rightAt - 1] = -1;
+            } else {
+                suffixArray[count] = tmp[leftAt++];
+                tmp[leftAt - 1] = -1;
+            }
+            ++count;
+        }
+        while (leftAt < halfLength) {
+
+            suffixArray[count] = tmp[leftAt++];
+
+            tmp[leftAt - 1] = -1;
+            ++count;
+        }
+        while (rightAt < length) {
+            suffixArray[count] = tmp[rightAt++];
+
+            ++count;
+            tmp[rightAt - 1] = -1;
+        }
+
+    }
     // ここから始まり、指定する範囲までは変更してはならないコードである。
 
     public void setTarget(byte[] target) {

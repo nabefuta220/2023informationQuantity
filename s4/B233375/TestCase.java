@@ -112,20 +112,15 @@ public class TestCase {
 
 			// ファイルとの比較
 			// space1="",spacer1,target10,target16,target22;
-			System.out.println("diff with file...");
+			
 			testFrequencerWithDiff(space1, target10);
-			System.out.println("checking...");
 			testFrequencerWithDiff(space1, target16);
-			System.out.println("checking...");
 			testFrequencerWithDiff(space1, target22);
-			System.out.println("checking...");
+	
 
 			testFrequencerWithDiff(spacer1, target10);
-			System.out.println("checking...");
 			testFrequencerWithDiff(spacer1, target16);
-			System.out.println("checking...");
 			testFrequencerWithDiff(spacer1, target22);
-			System.out.println("checking...");
 			testFrequencerWithDiff(space1, space1);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -187,14 +182,10 @@ public class TestCase {
 
 			// ファイルとの比較
 			// space1="",spacer1,target10,target16,target22;
-			System.out.println("diff with file");
 			testEstimationWithDiff(space1, target10);
-			System.out.println("checking...");
 			testEstimationWithDiff(space1, target16);
-			System.out.println("checking...");
 
 			testEstimationWithDiff(spacer1, target10);
-			System.out.println("checking...");
 			testEstimationWithDiff(spacer1, target16);
 
 		} catch (Exception e) {

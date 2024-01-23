@@ -348,6 +348,9 @@ public class FrequencerBinary implements FrequencerInterface {
 		// == -1); ++res) { }
 
 		int left = 0, right = spaceLength, middle;
+		if (right - left <= 0) {
+			return left;
+		}
 		if (targetCompare(left, start, end) != -1) {//右端は明らかに対象よりも後に来るので、左端が対象よりも先に来ることを確認
 			return left;//もし、対象と同じか、その後に来るなら、全部対象の後に来ることが分かるので、左端を返す
 		}
@@ -397,6 +400,9 @@ public class FrequencerBinary implements FrequencerInterface {
 		//
 		//int res;		for (res = spaceLength - 1; res >= 0 && (targetCompare(res, start, end) == 1); --res) {}
 		int left = 0, right = spaceLength, middle;
+		if (right - left <= 0) {
+			return left;
+		}
 		if (targetCompare(left, start, end) == 1) {//右端は明らかに対象の後に来るので、左端が対象と同じかその前に来ることを確認する
 			return left;//もし対象の後に後にくるならば、すべてが対象の後ろに来ることが明らかなので左端を返す
 		}

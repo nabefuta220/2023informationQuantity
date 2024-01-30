@@ -19,8 +19,8 @@ import s4.specification.*;
 
 public class FrequencerRefactor implements FrequencerInterface {
 	// Code to start with: This code is not working, but good start point to work.
-	byte[] myTarget;
-	byte[] mySpace;
+	byte[] target;
+	byte[] space;
 	boolean targetReady = false;
 	boolean spaceReady = false;
 	private int spaceLength = 0;
@@ -39,11 +39,11 @@ public class FrequencerRefactor implements FrequencerInterface {
 	//
 	private void printSuffixArray() {
 		if (spaceReady) {
-			for (int i = 0; i < mySpace.length; i++) {
+			for (int i = 0; i < spaceLength; i++) {
 				int s = suffixArray[i];
 				System.out.printf("suffixArray[%2d]=%2d:", i, s);
-				for (int j = s; j < mySpace.length; j++) {
-					System.out.write(mySpace[j]);
+				for (int j = s; j < spaceLength; j++) {
+					System.out.write(this.space[j]);
 				}
 				System.out.write('\n');
 			}
@@ -73,24 +73,24 @@ public class FrequencerRefactor implements FrequencerInterface {
 		// ここにコードを記述せよ
 		//
 		int short_letter = i < j ? j : i;// 文字数が短い文字
-		int res = 0;// 比較結果
+		int comp = 0;// 比較結果
 		int in_current = 0;// 現在見ている文字
 
-		while (res == 0) {
+		while (comp == 0) {
 			// 範囲かどうか見る
 			if (short_letter + in_current >= spaceLength) {// 表示範囲を超える
-				res = j - i;
+				comp = j - i;
 				break;
 			}
 			// 大小比較
-			res = mySpace[i + in_current] - mySpace[j + in_current];
+			comp = this.space[i + in_current] - this.space[j + in_current];
 			++in_current;
 		}
 
-		if (res > 0) {
+		if (comp > 0) {
 			// System.err.printf("%d > %d\n", i, j);
 			return 1;
-		} else if (res < 0) {
+		} else if (comp < 0) {
 			// System.err.printf("%d < %d\n", i, j);
 			return -1;
 		}
@@ -100,8 +100,8 @@ public class FrequencerRefactor implements FrequencerInterface {
 
 	public void setSpace(byte[] space) {
 		// suffixArrayの前処理は、setSpaceで定義せよ。
-		mySpace = space;
-		spaceLength = mySpace.length;
+		this.space = space;
+		spaceLength = this.space.length;
 		if (spaceLength > 0)
 			spaceReady = true;
 
@@ -170,33 +170,27 @@ public class FrequencerRefactor implements FrequencerInterface {
 
 			if (suffixCompare(tmp[leftAt], tmp[rightAt]) == 1) {
 				suffixArray[count] = tmp[rightAt++];
-				tmp[rightAt - 1] = -1;
 			} else {
 				suffixArray[count] = tmp[leftAt++];
-				tmp[leftAt - 1] = -1;
 			}
 			++count;
 		}
 		while (leftAt < halfLength) {
 
 			suffixArray[count] = tmp[leftAt++];
-
-			tmp[leftAt - 1] = -1;
 			++count;
 		}
 		while (rightAt < length) {
 			suffixArray[count] = tmp[rightAt++];
-
 			++count;
-			tmp[rightAt - 1] = -1;
 		}
 
 	}
 	// ここから始まり、指定する範囲までは変更してはならないコードである。
 
 	public void setTarget(byte[] target) {
-		myTarget = target;
-		if (myTarget.length > 0)
+		this.target = target;
+		if (this.target.length > 0)
 			targetReady = true;
 	}
 
@@ -205,7 +199,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 			return -1;
 		if (spaceReady == false)
 			return 0;
-		return subByteFrequency(0, myTarget.length);
+		return subByteFrequency(0, this.target.length);
 	}
 
 	public int subByteFrequency(int start, int end) {
@@ -230,8 +224,8 @@ public class FrequencerRefactor implements FrequencerInterface {
 		// The following the counting method using suffix array.
 		// 演習の内容は、適切なsubByteStartIndexとsubByteEndIndexを定義することである。
 		int first = subByteStartIndex(start, end);
-		int last1 = subByteEndIndex(start, end);
-		return last1 - first;// 半開区間で定義すれば良さそう
+		int last = subByteEndIndex(start, end);
+		return last - first;// 半開区間で定義すれば良さそう
 	}
 	// 変更してはいけないコードはここまで。
 
@@ -286,7 +280,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 				}
 				return 0;
 			}
-			res = mySpace[suffixArray[i] + in_current] - myTarget[j + in_current];
+			res = this.space[suffixArray[i] + in_current] -this.target[j + in_current];
 
 			++in_current;
 		}
@@ -494,7 +488,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 			frequencerObject.setTarget("H".getBytes());
 			int result = frequencerObject.frequency();
 			int except_value = 4;
-			System.out.print(frequencerObject.myTarget.toString() + " in " + frequencerObject.mySpace.toString()
+			System.out.print(frequencerObject.target.toString() + " in " + frequencerObject.space.toString()
 					+ " : Freq = " + result + " ");
 			if (except_value == result) {
 				System.out.println("OK");
@@ -503,7 +497,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 			}
 			// 2文字でのテスト
 			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-			System.out.println("space length:" + frequencerObject.mySpace.length);
+			System.out.println("space length:" + frequencerObject.space.length);
 			frequencerObject.printSuffixArray();
 			frequencerObject.setTarget("Hi".getBytes());
 			result = frequencerObject.frequency();
@@ -520,11 +514,11 @@ public class FrequencerRefactor implements FrequencerInterface {
 			except_value = 0;
 			System.out.print("Freq = " + result + " ");
 			if ((except_value == result) && (frequencerObject.subByteEndIndex(0,
-					frequencerObject.mySpace.length) == frequencerObject.mySpace.length)) {
+					frequencerObject.space.length) == frequencerObject.space.length)) {
 				System.out.println("OK");
 			} else {
 				System.out.println("WRONG value : " + result + " end pos : " + frequencerObject.subByteEndIndex(0,
-						frequencerObject.mySpace.length));
+						frequencerObject.space.length));
 			}
 			// 探索位置が始点のときのテスト
 			frequencerObject.setSpace("hello".getBytes());
@@ -534,7 +528,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 			except_value = 0;
 			System.out.print("Freq = " + result + " ");
 			if ((except_value == result) && (frequencerObject.subByteStartIndex(0,
-					frequencerObject.mySpace.length) == 0)) {
+					frequencerObject.space.length) == 0)) {
 				System.out.println("OK");
 			} else {
 				System.out.println("WRONG");

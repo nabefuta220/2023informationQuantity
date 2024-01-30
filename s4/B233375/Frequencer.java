@@ -279,53 +279,39 @@ public class Frequencer implements FrequencerInterface {
         return right; // 右端は対象よりも後に来るはず
     }
 
+    private static void testSuffix(String space, int[] except_array) {
+        Frequencer tester = new Frequencer();
+        tester.setSpace(space.getBytes());
+        tester.printSuffixArray();
+        for (int i = 0; i < tester.suffixArray.length; ++i) {
+            System.err.printf("suffix[%d] : (except %d , actually %d) :", i,
+                    except_array[i],
+                    tester.suffixArray[i]);
+            if (except_array[i] != tester.suffixArray[i]) {
+                System.err.println("WA");
+            } else {
+                System.err.println("AC");
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        Frequencer frequencerObject;
+        Frequencer tester;
         try {
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("ABC".getBytes());
-            frequencerObject.printSuffixArray();
+            tester = new Frequencer();
             // test for suffix array of ABC (ABC , BC ,A -> 0,1,2)
             int[] expect_suffix_abc = { 0, 1, 2 };
-            for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-                System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_abc[i],
-                        frequencerObject.suffixArray[i]);
-                if (expect_suffix_abc[i] != frequencerObject.suffixArray[i]) {
-                    System.err.println("ng");
-                } else {
-                    System.err.println("ok");
-                }
-            }
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("CBA".getBytes());
-            frequencerObject.printSuffixArray();
+            testSuffix("ABC", expect_suffix_abc);
+
             int[] expect_suffix_cba = { 2, 1, 0 };// A BA CBA
-            for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-                System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_cba[i],
-                        frequencerObject.suffixArray[i]);
-                if (expect_suffix_cba[i] != frequencerObject.suffixArray[i]) {
-                    System.err.println("ng");
-                } else {
-                    System.err.println("ok");
-                }
-            }
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("HHH".getBytes());
-            frequencerObject.printSuffixArray();
+            testSuffix("CBA", expect_suffix_cba);
+
             int[] expect_suffix_hhh = { 2, 1, 0 };// H HH HHH
-            for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-                System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_hhh[i],
-                        frequencerObject.suffixArray[i]);
-                if (expect_suffix_hhh[i] != frequencerObject.suffixArray[i]) {
-                    System.err.println("ng");
-                } else {
-                    System.err.println("ok");
-                }
-            }
-            System.out.println();
-            frequencerObject = new Frequencer();
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            frequencerObject.printSuffixArray();
+            testSuffix("HHH", expect_suffix_hhh);
+
+            tester = new Frequencer();
+            tester.setSpace("Hi Ho Hi Ho".getBytes());
+            tester.printSuffixArray();
             /*
              * Example from "Hi Ho Hi Ho"
              * 0: Hi Ho
@@ -341,22 +327,16 @@ public class Frequencer implements FrequencerInterface {
              * 10:o Hi Ho
              */
             int[] expect_suffix_long = { 5, 8, 2, 6, 0, 9, 3, 7, 1, 10, 4 };
-            for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-                System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_long[i],
-                        frequencerObject.suffixArray[i]);
-                if (expect_suffix_long[i] != frequencerObject.suffixArray[i]) {
-                    System.err.println("ng");
-                } else {
-                    System.err.println("ok");
-                }
-            }
+            testSuffix("Hi Ho Hi Ho", expect_suffix_long);
+
             // 1文字でのテスト
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            frequencerObject.printSuffixArray();
-            frequencerObject.setTarget("H".getBytes());
-            int result = frequencerObject.frequency();
+
+            tester.setSpace("Hi Ho Hi Ho".getBytes());
+            tester.printSuffixArray();
+            tester.setTarget("H".getBytes());
+            int result = tester.frequency();
             int except_value = 4;
-            System.out.print(frequencerObject.target.toString() + " in " + frequencerObject.space.toString()
+            System.out.print(tester.target.toString() + " in " + tester.space.toString()
                     + " : Freq = " + result + " ");
             if (except_value == result) {
                 System.out.println("OK");
@@ -364,11 +344,11 @@ public class Frequencer implements FrequencerInterface {
                 System.out.println("WRONG");
             }
             // 2文字でのテスト
-            frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-            System.out.println("space length:" + frequencerObject.space.length);
-            frequencerObject.printSuffixArray();
-            frequencerObject.setTarget("Hi".getBytes());
-            result = frequencerObject.frequency();
+            tester.setSpace("Hi Ho Hi Ho".getBytes());
+            System.out.println("space length:" + tester.space.length);
+            tester.printSuffixArray();
+            tester.setTarget("Hi".getBytes());
+            result = tester.frequency();
             except_value = 2;
             System.out.print("Freq = " + result + " ");
             if (except_value == result) {
@@ -377,26 +357,26 @@ public class Frequencer implements FrequencerInterface {
                 System.out.println("WRONG ,value=" + result);
             }
             // 探索地点が終点を超えるときのテスト
-            frequencerObject.setTarget("z".getBytes());
-            result = frequencerObject.frequency();
+            tester.setTarget("z".getBytes());
+            result = tester.frequency();
             except_value = 0;
             System.out.print("Freq = " + result + " ");
-            if ((except_value == result) && (frequencerObject.upperBound(0,
-                    frequencerObject.space.length) == frequencerObject.space.length)) {
+            if ((except_value == result) && (tester.upperBound(0,
+                    tester.space.length) == tester.space.length)) {
                 System.out.println("OK");
             } else {
-                System.out.println("WRONG value : " + result + " end pos : " + frequencerObject.upperBound(0,
-                        frequencerObject.space.length));
+                System.out.println("WRONG value : " + result + " end pos : " + tester.upperBound(0,
+                        tester.space.length));
             }
             // 探索位置が始点のときのテスト
-            frequencerObject.setSpace("hello".getBytes());
-            frequencerObject.printSuffixArray();
-            frequencerObject.setTarget("a".getBytes());
-            result = frequencerObject.frequency();
+            tester.setSpace("hello".getBytes());
+            tester.printSuffixArray();
+            tester.setTarget("a".getBytes());
+            result = tester.frequency();
             except_value = 0;
             System.out.print("Freq = " + result + " ");
-            if ((except_value == result) && (frequencerObject.lowerBound(0,
-                    frequencerObject.space.length) == 0)) {
+            if ((except_value == result) && (tester.lowerBound(0,
+                    tester.space.length) == 0)) {
                 System.out.println("OK");
             } else {
                 System.out.println("WRONG");

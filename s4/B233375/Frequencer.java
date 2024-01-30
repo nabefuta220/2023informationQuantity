@@ -4,7 +4,6 @@ import java.lang.*;
 import s4.specification.*;
 
 /*package s4.specification;
-  ここは、１回、２回と変更のない外部仕様である。
   public interface FrequencerInterface {     // This interface provides the design for frequency counter.
   void setTarget(byte  target[]); // set the data to search.
   void setSpace(byte  space[]);  // set the data to be searched target from.

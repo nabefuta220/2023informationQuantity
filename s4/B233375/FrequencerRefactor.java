@@ -4,7 +4,6 @@ import java.lang.*;
 import s4.specification.*;
 
 /*package s4.specification;
-  ここは、１回、２回と変更のない外部仕様である。
   public interface FrequencerInterface {     // This interface provides the design for frequency counter.
   void setTarget(byte  target[]); // set the data to search.
   void setSpace(byte  space[]);  // set the data to be searched target from.
@@ -50,7 +49,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 	 * <ol>
 	 * <li>先頭のアルファベット順 e.g. "a" < "b"
 	 * <li>先頭のアルファベットと同じの時は次の文字列 e.g. "aa" < "ab"
-	 * <li>一方の文字列がもう一方の接頭辞のときは文字列が長い方 e.g. "aa" < "aab"
+	 * <li>一方の文字列がもう一方の接頭辞のときは文字列が長い方 e.g. "aa" < "aab" , "ab" = "ab"
 	 * </ol>
 	 * 
 	 * @param i 比較する文字列1 (S="abcd", i=0 のとき、 S_i = "abcd")
@@ -168,51 +167,37 @@ public class FrequencerRefactor implements FrequencerInterface {
 
 	public int subByteFrequency(int start, int end) {
 
-		int first = lowerBound(start, end);
-		int last = upperBound(start, end);
-		return last - first;// 半開区間で定義すれば良さそう
+		return upperBound(start, end) - lowerBound(start, end);
 	}
 	// 変更してはいけないコードはここまで。
 
+	/**
+	 * 文字列 Space_i target[j ,k) を辞書順に比較を行う ,
+	 * ここで Space_i はSpaceのi番目(0始まり)から始まる接尾語 (space = "abcd", i= 1 ならば space_i =
+	 * "bcd" , spaceは前と同じでi=0 ならば space_i = "abcd")
+	 * target[j,k)はtargetのj番目から始まり、k-1番目に終わる(境界を含む)の連続部分文字列を指す(値はいずれも0-indexed)
+	 * (target = "efghi" , j=1 , k= 4 ならば、 target[j,k] = "fgh" , targetは同じで j=3 k=4
+	 * ならば target[j,k) = "h")
+	 * 
+	 * 比較は次の順序で行われる
+	 * <ol>
+	 * <li>先頭の文字のアルファベット順 e.g. "a" < "b"
+	 * <li>先頭の文字が同じならば次の文字のアルファベット順 e.g. "aa" < "ab"
+	 * <li>一方の文字列がもう一方の接頭辞のとき
+	 * <ul>
+	 * <li>space_i の長さ < target[j,k)の長さ のとき、 space_i < target[j,k) e.g. "a" < "ab"
+	 * <li>space_i の長さ >= target[j,k)の長さ のとき、 space_i = target[j,k) e.g. "ab" = "a"
+	 * </ul>
+	 * </ol>
+	 * 
+	 * @param i space の接尾詞の開始地点
+	 * @param j targetの連続部分文字列の始点
+	 * @param k targetの連続部分文字列の終点
+	 * @return 大小比較の結果, space_i > target[j,k) のとき、1以上の値を返し、space_i > target[j,k)
+	 *         のとき、-1以下の値を返す space_i > target[j,k) のとき、0を返す
+	 */
 	private int targetCompare(int i, int j, int k) {
-		// subByteStartIndexとsubByteEndIndexを定義するときに使う比較関数。
-		// 次のように定義せよ。
-		// suffix_i is a string starting with the position i in "byte [] mySpace".:
-		// mySpace[i,mySpace.length)
-		// When mySpace is "ABCD", suffix_0 is "ABCD", suffix_1 is "BCD",
-		// suffix_2 is "CD", and sufffix_3 is "D".
-		// target_j_k is a string in myTarget start at j-th postion ending k-th
-		// position. : myTarget[j,k)
-		// if myTarget is "ABCD",
-		// j=0, and k=1 means that target_j_k is "A".
-		// j=1, and k=3 means that target_j_k is "BC".
-		// This method compares suffix_i and target_j_k.
-		// if the beginning of suffix_i matches target_j_k, it return 0.
-		// if suffix_i > target_j_k it return 1;
-		// if suffix_i < target_j_k it return -1;
-		// if first part of suffix_i is equal to target_j_k, it returns 0;
-		//
-		// Example of search
-		// suffix target
-		// "o" > "i"
-		// "o" < "z"
-		// "o" = "o"
-		// "o" < "oo"
-		// "Ho" > "Hi"
-		// "Ho" < "Hz"
-		// "Ho" = "Ho"
-		// "Ho" < "Ho " : "Ho " is not in the head of suffix "Ho"
-		// "Ho" = "H" : "H" is in the head of suffix "Ho"
-		// The behavior is different from suffixCompare on this case.
-		// For example,
-		// if suffix_i is "Ho Hi Ho", and target_j_k is "Ho",
-		// targetCompare should return 0;
-		// if suffix_i is "Ho Hi Ho", and suffix_j is "Ho",
-		// suffixCompare should return 1. (It was written -1 before 2021/12/21)
-		//
-		// ここに比較のコードを書け
-		// # TODO : ここの返り値は符号と大小を区別する形でできそう
-		// サイズをtargetの長さに制限して、文字列比較?
+
 		int comp_targetLength = k - j;
 		int comp_spaceLength = spaceLength - suffixArray[i];
 		int comp = 0;// 比較結果
@@ -232,47 +217,19 @@ public class FrequencerRefactor implements FrequencerInterface {
 		return comp;
 	}
 
+	/**
+	 * suffix arrayの中で、辞書順でspace[start, end)と同じか、それよりも前に出るインデックスのうち、最も小さな値を返す
+	 * 
+	 * @param start spaceの連続部分文字列の開始地点
+	 * @param end   spaceの連続部分文字列の終点
+	 * @return suffix arrayの中で、辞書順でspace[start, end)と同じか、それよりも前に出るインデックス(0-index)
+	 */
 	private int lowerBound(int start, int end) {
-		// suffix arrayのなかで、目的の文字列の出現が始まる位置を求めるメソッド=lowerbound
-		// 以下のように定義せよ。
-		// The meaning of start and end is the same as subByteFrequency.
-		/*
-		 * Example of suffix created from "Hi Ho Hi Ho"
-		 * 0: Hi Ho
-		 * 1: Ho
-		 * 2: Ho Hi Ho
-		 * 3:Hi Ho
-		 * 4:Hi Ho Hi Ho
-		 * 5:Ho
-		 * 6:Ho Hi Ho
-		 * 7:i Ho
-		 * 8:i Ho Hi Ho
-		 * 9:o
-		 * 10:o Hi Ho
-		 */
-
-		// It returns the index of the first suffix
-		// which is equal or greater than target_start_end.
-		// Suppose target is set "Ho Ho Ho Ho"
-		// if start = 0, and end = 2, target_start_end is "Ho".
-		// if start = 0, and end = 3, target_start_end is "Ho ".
-		// Assuming the suffix array is created from "Hi Ho Hi Ho",
-		// if target_start_end is "Ho", it will return 5.
-		// Assuming the suffix array is created from "Hi Ho Hi Ho",
-		// if target_start_end is "Ho ", it will return 6.
-		//
-		// ここにコードを記述せよ。
-		//
-		// int res; for (res = 0; res < spaceLength && (targetCompare(res, start, end)
-		// == -1); ++res) { }
-		// # TODO : 関数名を変更したい
-		// 範囲が1以下のときは左端を返す
 
 		int left = 0, right = spaceLength, middle;
-		if (right - left <= 0) {
+		if (right - left <= 0) { // 範囲が1以下のときは左端を返す
 			return left;
 		}
-		// if (targetCompare(left, start, end) != -1) -> 0 or 1 +
 		if (targetCompare(left, start, end) >= 0) {// 右端は明らかに対象よりも後に来るので、左端が対象よりも先に来ることを確認
 			return left;// もし、対象と同じか、その後に来るなら、全部対象の後に来ることが分かるので、左端を返す
 		}
@@ -282,7 +239,6 @@ public class FrequencerRefactor implements FrequencerInterface {
 			// 左端は対象よりも前に、右端は対象と同じか後ろに来るように持つ
 			middle = left + (right - left) / 2;
 			comp = targetCompare(middle, start, end);
-			// if (comp == -1) , -1 - 2 ...
 			if (comp < 0) {// 中央が対象より先に来るか、後に来るかで場合分け
 				left = middle;
 			} else {
@@ -293,42 +249,18 @@ public class FrequencerRefactor implements FrequencerInterface {
 		return right; // 右端は対象と同じかその後に来る
 	}
 
+	/**
+	 * suffix arrayの中で、辞書順でspace[start, end)よりも後ろに出るインデックスのうち、最も小さな値を返す
+	 * 
+	 * @param start spaceの連続部分文字列の開始地点
+	 * @param end   spaceの連続部分文字列の終点
+	 * @return suffix arrayの中で、辞書順でspace[start, end)よりも後ろに出る、インデックス(0-index)
+	 */
 	private int upperBound(int start, int end) {
-		// suffix arrayのなかで、目的の文字列の出現しなくなる場所を求めるメソッド=upper bound
-		// 以下のように定義せよ。
-		// The meaning of start and end is the same as subByteFrequency.
-		/*
-		 * Example of suffix created from "Hi Ho Hi Ho"
-		 * 0: Hi Ho
-		 * 1: Ho
-		 * 2: Ho Hi Ho
-		 * 3:Hi Ho
-		 * 4:Hi Ho Hi Ho
-		 * 5:Ho
-		 * 6:Ho Hi Ho
-		 * 7:i Ho
-		 * 8:i Ho Hi Ho
-		 * 9:o
-		 * 10:o Hi Ho
-		 */
-		// It returns the index of the first suffix
-		// which is greater than target_start_end; (and not equal to target_start_end)
-		// Suppose target is set "High_and_Low",
-		// if start = 0, and end = 2, target_start_end is "Hi".
-		// if start = 1, and end = 2, target_start_end is "i".
-		// Assuming the suffix array is created from "Hi Ho Hi Ho",
-		// if target_start_end is "Ho", it will return 7 for "Hi Ho Hi Ho".
-		// Assuming the suffix array is created from "Hi Ho Hi Ho",
-		// if target_start_end is"i", it will return 9 for "Hi Ho Hi Ho".
-		//
-		// int res; for (res = spaceLength - 1; res >= 0 && (targetCompare(res, start,
-		// end) == 1); --res) {}
-		// # TODO : 関数名を変更したい
 		int left = 0, right = spaceLength, middle;
-		if (right - left <= 0) {
+		if (right - left <= 0) { // 範囲が1以下のときは左端を返す
 			return left;
 		}
-		// if (targetCompare(left, start, end) == 1) -> 1 , 2,
 		if (targetCompare(left, start, end) > 0) {// 右端は明らかに対象の後に来るので、左端が対象と同じかその前に来ることを確認する
 			return left;// もし対象の後に後にくるならば、すべてが対象の後ろに来ることが明らかなので左端を返す
 		}
@@ -337,64 +269,48 @@ public class FrequencerRefactor implements FrequencerInterface {
 			// 左端は対象と同じかより前に来るように、右端は対象の後ろに来るように持っておく
 			middle = left + (right - left) / 2;
 			comp = targetCompare(middle, start, end);
-			// if (comp == 1)// 1 , 2 , ...
 			if (comp > 0) {
 				right = middle;
 			} else {
 				left = middle;
 			}
-
 		} while (right - left >= 2);// 幅が最小になるまで繰り返す
 		return right; // 右端は対象よりも後に来るはず
 	}
 
+	private static void testSuffix(String space, int[] except_array) {
+		FrequencerRefactor tester = new FrequencerRefactor();
+		tester.setSpace(space.getBytes());
+		tester.printSuffixArray();
+		for (int i = 0; i < tester.suffixArray.length; ++i) {
+			System.err.printf("suffix[%d] : (except %d , actually %d) :", i,
+					except_array[i],
+					tester.suffixArray[i]);
+			if (except_array[i] != tester.suffixArray[i]) {
+				System.err.println("WA");
+			} else {
+				System.err.println("AC");
+			}
+		}
+	}
+
 	public static void main(String[] args) {
-		FrequencerRefactor frequencerObject;
-		try { // テストに使うのに推奨するmySpaceの文字は、"ABC", "CBA", "HHH", "Hi Ho Hi Ho".
-			frequencerObject = new FrequencerRefactor();
-			frequencerObject.setSpace("ABC".getBytes());
-			frequencerObject.printSuffixArray();
+		FrequencerRefactor tester;
+		try {
+			tester = new FrequencerRefactor();
 			// test for suffix array of ABC (ABC , BC ,A -> 0,1,2)
 			int[] expect_suffix_abc = { 0, 1, 2 };
-			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_abc[i],
-						frequencerObject.suffixArray[i]);
-				if (expect_suffix_abc[i] != frequencerObject.suffixArray[i]) {
-					System.err.println("ng");
-				} else {
-					System.err.println("ok");
-				}
-			}
-			frequencerObject = new FrequencerRefactor();
-			frequencerObject.setSpace("CBA".getBytes());
-			frequencerObject.printSuffixArray();
+			testSuffix("ABC", expect_suffix_abc);
+
 			int[] expect_suffix_cba = { 2, 1, 0 };// A BA CBA
-			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_cba[i],
-						frequencerObject.suffixArray[i]);
-				if (expect_suffix_cba[i] != frequencerObject.suffixArray[i]) {
-					System.err.println("ng");
-				} else {
-					System.err.println("ok");
-				}
-			}
-			frequencerObject = new FrequencerRefactor();
-			frequencerObject.setSpace("HHH".getBytes());
-			frequencerObject.printSuffixArray();
+			testSuffix("CBA", expect_suffix_cba);
+
 			int[] expect_suffix_hhh = { 2, 1, 0 };// H HH HHH
-			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_hhh[i],
-						frequencerObject.suffixArray[i]);
-				if (expect_suffix_hhh[i] != frequencerObject.suffixArray[i]) {
-					System.err.println("ng");
-				} else {
-					System.err.println("ok");
-				}
-			}
-			System.out.println();
-			frequencerObject = new FrequencerRefactor();
-			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-			frequencerObject.printSuffixArray();
+			testSuffix("HHH", expect_suffix_hhh);
+
+			tester = new FrequencerRefactor();
+			tester.setSpace("Hi Ho Hi Ho".getBytes());
+			tester.printSuffixArray();
 			/*
 			 * Example from "Hi Ho Hi Ho"
 			 * 0: Hi Ho
@@ -408,23 +324,18 @@ public class FrequencerRefactor implements FrequencerInterface {
 			 * 8:i Ho Hi Ho
 			 * 9:o
 			 * 10:o Hi Ho
-			 */ int[] expect_suffix_long = { 5, 8, 2, 6, 0, 9, 3, 7, 1, 10, 4 };// H HH HHH
-			for (int i = 0; i < frequencerObject.suffixArray.length; ++i) {
-				System.err.printf("suffix[%d] : (except %d , actually %d) :", i, expect_suffix_long[i],
-						frequencerObject.suffixArray[i]);
-				if (expect_suffix_long[i] != frequencerObject.suffixArray[i]) {
-					System.err.println("ng");
-				} else {
-					System.err.println("ok");
-				}
-			}
+			 */
+			int[] expect_suffix_long = { 5, 8, 2, 6, 0, 9, 3, 7, 1, 10, 4 };
+			testSuffix("Hi Ho Hi Ho", expect_suffix_long);
+
 			// 1文字でのテスト
-			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-			frequencerObject.printSuffixArray();
-			frequencerObject.setTarget("H".getBytes());
-			int result = frequencerObject.frequency();
+
+			tester.setSpace("Hi Ho Hi Ho".getBytes());
+			tester.printSuffixArray();
+			tester.setTarget("H".getBytes());
+			int result = tester.frequency();
 			int except_value = 4;
-			System.out.print(frequencerObject.target.toString() + " in " + frequencerObject.space.toString()
+			System.out.print(tester.target.toString() + " in " + tester.space.toString()
 					+ " : Freq = " + result + " ");
 			if (except_value == result) {
 				System.out.println("OK");
@@ -432,11 +343,11 @@ public class FrequencerRefactor implements FrequencerInterface {
 				System.out.println("WRONG");
 			}
 			// 2文字でのテスト
-			frequencerObject.setSpace("Hi Ho Hi Ho".getBytes());
-			System.out.println("space length:" + frequencerObject.space.length);
-			frequencerObject.printSuffixArray();
-			frequencerObject.setTarget("Hi".getBytes());
-			result = frequencerObject.frequency();
+			tester.setSpace("Hi Ho Hi Ho".getBytes());
+			System.out.println("space length:" + tester.space.length);
+			tester.printSuffixArray();
+			tester.setTarget("Hi".getBytes());
+			result = tester.frequency();
 			except_value = 2;
 			System.out.print("Freq = " + result + " ");
 			if (except_value == result) {
@@ -445,26 +356,26 @@ public class FrequencerRefactor implements FrequencerInterface {
 				System.out.println("WRONG ,value=" + result);
 			}
 			// 探索地点が終点を超えるときのテスト
-			frequencerObject.setTarget("z".getBytes());
-			result = frequencerObject.frequency();
+			tester.setTarget("z".getBytes());
+			result = tester.frequency();
 			except_value = 0;
 			System.out.print("Freq = " + result + " ");
-			if ((except_value == result) && (frequencerObject.upperBound(0,
-					frequencerObject.space.length) == frequencerObject.space.length)) {
+			if ((except_value == result) && (tester.upperBound(0,
+					tester.space.length) == tester.space.length)) {
 				System.out.println("OK");
 			} else {
-				System.out.println("WRONG value : " + result + " end pos : " + frequencerObject.upperBound(0,
-						frequencerObject.space.length));
+				System.out.println("WRONG value : " + result + " end pos : " + tester.upperBound(0,
+						tester.space.length));
 			}
 			// 探索位置が始点のときのテスト
-			frequencerObject.setSpace("hello".getBytes());
-			frequencerObject.printSuffixArray();
-			frequencerObject.setTarget("a".getBytes());
-			result = frequencerObject.frequency();
+			tester.setSpace("hello".getBytes());
+			tester.printSuffixArray();
+			tester.setTarget("a".getBytes());
+			result = tester.frequency();
 			except_value = 0;
 			System.out.print("Freq = " + result + " ");
-			if ((except_value == result) && (frequencerObject.lowerBound(0,
-					frequencerObject.space.length) == 0)) {
+			if ((except_value == result) && (tester.lowerBound(0,
+					tester.space.length) == 0)) {
 				System.out.println("OK");
 			} else {
 				System.out.println("WRONG");

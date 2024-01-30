@@ -36,9 +36,12 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 		System.out.write(' ');
 	}
 
-	// f: information quantity for a count, -log2(count/sizeof(space))
-
-
+	/**
+	 * 情報量を求める
+	 * 
+	 * @param freq space中に対象の文字列が現れた回数
+	 * @return 情報量 = -log2(freq / space.length)
+	 */
 	double iq(int freq) {
 		return -Math.log10((double) freq / (double) space.length) / Math.log10((double) 2.0);
 	}
@@ -70,19 +73,17 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 
 		// suffixEstimation[i] -> myTarget[i,length)をtargetとしたときに情報量を最小限に分割したときの最小値
 		// init : suffixEstimation[length]= 0 (targetが空のときは情報量が0となる)
-		// trans: suffixEstimation[i] = min(j=i to length)(suffixEstimation[j] +
-		// iq[i,j))
+		// trans: suffixEstimation[i] = min(j=i to length)(suffixEstimation[j] +iq[i,j))
 		// find : suffixEstimation[0]
 		double[] suffixEstimation = new double[targetLength + 1];
-
 
 		for (int i = 0; i < targetLength; i++) {
 			suffixEstimation[i] = Double.MAX_VALUE;
 		}
 
-		suffixEstimation[targetLength] = (double) 0.0; // IE("") = 0.0; shortest suffix of target
+		suffixEstimation[targetLength] = (double) 0.0;// 空文字列の情報量
 
-		for (int n = targetLength- 1; n >= 0; n--) {
+		for (int n = targetLength - 1; n >= 0; n--) {
 			// target = "abcdef..", n = 4 for example, subByte(0, 4) = "abcd",
 			// IE("abcd") = min( iq(#a)+IE("bcd"),
 			// iq(#ab)+IE("cd"),
@@ -94,12 +95,12 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 			// suffixEstimation[1] = IE("bcd"); subByte(0,1)= "a",
 			// suffixEstimation[0] = IE("abcd");
 			//
-			double value_min = Double.MAX_VALUE; // for suffixEstimation[n] #TODO : 最大値を別の名前で置き換えたい
-			double value_candidate = Double.MAX_VALUE; // for candidate of suffixEstimation[n]
+			double value_min = Double.MAX_VALUE; // suffixEstimation[n] の暫定の値
+			double value_candidate = Double.MAX_VALUE; // suffixEstimation[n]の候補値
 			int start = n;
 			for (int end = n + 1; end <= targetLength; end++) {
 				int freq = myFrequencer.subByteFrequency(start, end);
-				if (freq == 0) {//この時点で他の値もMAX_VALUEになるはず
+				if (freq == 0) {// この時点で他の値もMAX_VALUEになるはず
 					return Double.MAX_VALUE;
 				}
 				value_candidate = iq(freq) + suffixEstimation[end];
@@ -115,41 +116,34 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 
 	}
 
-	public static void main(String[] args) {
-		InformationEstimatorRefactor myObject;
-		double value;
-		debugMode = true;
+	/**
+	 * InformationEstimatorのテストを行う
+	 * 
+	 * @param space  入力するspace
+	 * @param target 入力するtarget
+	 * @param except 予測する値
+	 */
+	private static void testInformationEstimation(String space, String target, double except) {
 		double eps = 0.0001;
-		myObject = new InformationEstimatorRefactor();
-		myObject.setSpace("3210321001230123".getBytes());
-		myObject.setTarget("0".getBytes());
-		value = myObject.estimation();
-		if (Math.abs(value - 2) <= eps) {
-			System.out.println("AC");
-		} else {
-			System.err.println("WA value: " + value);
-		}
+		InformationEstimatorInterface tester = new InformationEstimatorRefactor();
+		tester.setSpace(space.getBytes());
+		tester.setTarget(target.getBytes());
 
-		myObject.setTarget("01".getBytes());
-		value = myObject.estimation();
-		if (Math.abs(value - 3) <= eps) {
+		double value = tester.estimation();
+		if (Math.abs(value - except) <= eps) {
 			System.out.println("AC");
 		} else {
 			System.err.println("WA value: " + value);
 		}
-		myObject.setTarget("0123".getBytes());
-		value = myObject.estimation();
-		if (Math.abs(value - 3) <= eps) {
-			System.out.println("AC");
-		} else {
-			System.err.println("WA value: " + value);
-		}
-		myObject.setTarget("00".getBytes());
-		value = myObject.estimation();
-		if (Math.abs(value - 4) <= eps) {
-			System.out.println("AC");
-		} else {
-			System.err.println("WA value: " + value);
-		}
+	}
+
+	public static void main(String[] args) {
+
+		debugMode = true;
+		testInformationEstimation("3210321001230123", "0", 2.0);
+		testInformationEstimation("3210321001230123", "01", 3.0);
+		testInformationEstimation("3210321001230123", "0123", 3.0);
+		testInformationEstimation("3210321001230123", "00", 4.0);
+
 	}
 }

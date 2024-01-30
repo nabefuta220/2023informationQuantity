@@ -16,22 +16,21 @@ public interface InformationEstimatorInterface {
 }
 */
 
-public class InformationEstimatorFactor implements InformationEstimatorInterface {
+public class InformationEstimatorRefactor implements InformationEstimatorInterface {
 	static boolean debugMode = false;
-	// Code to tet, *warning: This code condtains intentional problem*
 	boolean targetReady = false;
 	boolean spaceReady = false;
-	byte[] myTarget; // data to compute its information quantity
-	byte[] mySpace; // Sample space to compute the probability
+	byte[] target; // data to compute its information quantity
+	byte[] space; // Sample space to compute the probability
 	FrequencerInterface myFrequencer; // Object for counting frequency
 
 	private void showVariables() {
-		for (int i = 0; i < mySpace.length; i++) {
-			System.out.write(mySpace[i]);
+		for (int i = 0; i < space.length; i++) {
+			System.out.write(space[i]);
 		}
 		System.out.write(' ');
-		for (int i = 0; i < myTarget.length; i++) {
-			System.out.write(myTarget[i]);
+		for (int i = 0; i < target.length; i++) {
+			System.out.write(target[i]);
 		}
 		System.out.write(' ');
 	}
@@ -45,24 +44,24 @@ public class InformationEstimatorFactor implements InformationEstimatorInterface
 		for (int i = 0; i < end - start; i++) {
 			result[i] = x[start + i];
 		}
-		;
+
 		return result;
 	}
 
 	// f: information quantity for a count, -log2(count/sizeof(space))
 	double iq(int freq) {
-		return -Math.log10((double) freq / (double) mySpace.length) / Math.log10((double) 2.0);
+		return -Math.log10((double) freq / (double) space.length) / Math.log10((double) 2.0);
 	}
 
 	public void setTarget(byte[] target) {
-		myTarget = target;
+		this.target = target;
 		if (target.length > 0)
 			targetReady = true;
 	}
 
 	public void setSpace(byte[] space) {
 		myFrequencer = new Frequencer();
-		mySpace = space;
+		this.space = space;
 		myFrequencer.setSpace(space);
 		spaceReady = true;
 	}
@@ -73,27 +72,27 @@ public class InformationEstimatorFactor implements InformationEstimatorInterface
 			return (double) 0.0;
 		if (spaceReady == false)
 			return Double.MAX_VALUE;
-		if (myTarget.length == 0) {
+		if (target.length == 0) {
 			System.err.println("reach length = 0");// # TODO : 余計なコメントは消せそう
 			return (double) 0.0; // Is it needed?
 
 		}
-		myFrequencer.setTarget(myTarget);
+		myFrequencer.setTarget(target);
 
-		double[] suffixEstimation = new double[myTarget.length + 1];
+		double[] suffixEstimation = new double[target.length + 1];
 		// suffixEstimation[i] -> myTarget[i,length)をtargetとしたときに情報量を最小限に分割したときの最小値
 		// init : suffixEstimation[length]= 0 (targetが空のときは情報量が0となる)
 		// trans: suffixEstimation[i] = min(j=i to length)(suffixEstimation[j] + iq[i,j)
 		// )
 		// find : suffixEstimation[0]
 
-		for (int i = 0; i < myTarget.length; i++) {
+		for (int i = 0; i < target.length; i++) {
 			suffixEstimation[i] = Double.MAX_VALUE;
 		}
 
-		suffixEstimation[myTarget.length] = (double) 0.0; // IE("") = 0.0; shortest suffix of target
+		suffixEstimation[target.length] = (double) 0.0; // IE("") = 0.0; shortest suffix of target
 
-		for (int n = myTarget.length - 1; n >= 0; n--) {
+		for (int n = target.length - 1; n >= 0; n--) {
 			// target = "abcdef..", n = 4 for example, subByte(0, 4) = "abcd",
 			// IE("abcd") = min( iq(#a)+IE("bcd"),
 			// iq(#ab)+IE("cd"),
@@ -108,7 +107,7 @@ public class InformationEstimatorFactor implements InformationEstimatorInterface
 			double value = Double.MAX_VALUE; // for suffixEstimation[n] #TODO : 最大値を別の名前で置き換えたい
 			double value1 = Double.MAX_VALUE; // for candidate of suffixEstimation[n]
 			int start = n;
-			for (int end = n + 1; end <= myTarget.length; end++) {
+			for (int end = n + 1; end <= target.length; end++) {
 				int freq = myFrequencer.subByteFrequency(start, end);
 				if (freq == 0) {
 					return Double.MAX_VALUE;
@@ -130,11 +129,11 @@ public class InformationEstimatorFactor implements InformationEstimatorInterface
 	}
 
 	public static void main(String[] args) {
-		InformationEstimatorFactor myObject;
+		InformationEstimatorRefactor myObject;
 		double value;
 		debugMode = true;
 		double eps = 0.0001;
-		myObject = new InformationEstimatorFactor();
+		myObject = new InformationEstimatorRefactor();
 		myObject.setSpace("3210321001230123".getBytes());
 		myObject.setTarget("0".getBytes());
 		value = myObject.estimation();

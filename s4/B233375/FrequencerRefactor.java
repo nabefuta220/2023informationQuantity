@@ -18,25 +18,17 @@ import s4.specification.*;
 */
 
 public class FrequencerRefactor implements FrequencerInterface {
-	// Code to start with: This code is not working, but good start point to work.
 	byte[] target;
 	byte[] space;
 	boolean targetReady = false;
 	boolean spaceReady = false;
 	private int spaceLength = 0;
-	int[] suffixArray; // Suffix Arrayの実装に使うデータの型をint []とせよ。
-	// 辞書順の早いものを最初に持っていく
+	/// spaceの接尾語を辞書順が早い順に並べた配列(要素は開始場所のインデックス)
+	int[] suffixArray;
 
-	// The variable, "suffixArray" is the sorted array of all suffixes of mySpace.
-	// Each suffix is expressed by a integer, which is the starting position in
-	// mySpace.
-
-	// The following is the code to print the contents of suffixArray.
-	// This code could be used on debugging.
-
-	// この関数は、デバッグに使ってもよい。mainから実行するときにも使ってよい。
-	// リポジトリにpushするときには、mainメッソド以外からは呼ばれないようにせよ。
-	//
+	/**
+	 * SuffixArrayの内容を標準出力に出力する
+	 */
 	private void printSuffixArray() {
 		if (spaceReady) {
 			for (int i = 0; i < spaceLength; i++) {
@@ -50,91 +42,64 @@ public class FrequencerRefactor implements FrequencerInterface {
 		}
 	}
 
+	/**
+	 * 2つの接尾文字列 S_i , S_jを辞書順に比較する
+	 * ここで、S_iとはSpace Sのi番目(0-index)から始まる連続した文字列のことである
+	 * e.g. S = "ABCD"のとき、 S_0 = "ABCD" , S_1 = "BCD" , S_2 = "CD" S_3 = "D" となる
+	 * 文字列の比較は以下の順で決まる
+	 * <ol>
+	 * <li>先頭のアルファベット順 e.g. "a" < "b"
+	 * <li>先頭のアルファベットと同じの時は次の文字列 e.g. "aa" < "ab"
+	 * <li>一方の文字列がもう一方の接頭辞のときは文字列が長い方 e.g. "aa" < "aab"
+	 * </ol>
+	 * 
+	 * @param i 比較する文字列1 (S="abcd", i=0 のとき、 S_i = "abcd")
+	 * @param j 比較する文字列2 (S="abcd", j=2 のとき、 S_j = "cd")
+	 * @return 大小比較の結果, S_i > S_j のとき、1以上の値を返し、S_i < S_j のとき、-1以下の値を返す S_i = S_j のとき、0を返す
+	 */
 	private int suffixCompare(int i, int j) {
 
-		// suffixCompareはソートのための比較メソッドである。
-		// 次のように定義せよ。
-		//
-		// comparing two suffixes by dictionary order.
-		// suffix_i is a string starting with the position i in "byte [] mySpace".
-		// When mySpace is "ABCD", suffix_0 is "ABCD", suffix_1 is "BCD",
-		// suffix_2 is "CD", and sufffix_3 is "D".
-		// Each i and j denote suffix_i, and suffix_j.
-		// Example of dictionary order
-		// "i" < "o" : compare by code
-		// "Hi" < "Ho" ; if head is same, compare the next element
-		// "Ho" < "Ho " ; if the prefix is identical, longer string is big
-		//
-		// The return value of "int suffixCompare" is as follows.
-		// if suffix_i > suffix_j, it returns 1
-		// if suffix_i < suffix_j, it returns -1
-		// if suffix_i = suffix_j, it returns 0;
-		// # TODO : ここの返り値は符号と大小を区別する形でできそう
-		// ここにコードを記述せよ
-		//
 		int short_letter = i < j ? j : i;// 文字数が短い文字
 		int comp = 0;// 比較結果
 		int in_current = 0;// 現在見ている文字
 
-		while (comp == 0) {
-			// 範囲かどうか見る
+		while (comp == 0) {//アルファベットが異なるまで繰り返す
+			// 範囲内かどうか見る
 			if (short_letter + in_current >= spaceLength) {// 表示範囲を超える
 				comp = j - i;
-				break;
+				return comp;//文字が長い方=開始インデックスが早い方を1とする
 			}
 			// 大小比較
 			comp = this.space[i + in_current] - this.space[j + in_current];
 			++in_current;
 		}
-
-		if (comp > 0) {
-			// System.err.printf("%d > %d\n", i, j);
-			return 1;
-		} else if (comp < 0) {
-			// System.err.printf("%d < %d\n", i, j);
-			return -1;
-		}
-		// System.err.printf("%d = %d\n", i, j);
-		return 0; // この行は変更しなければいけない。
+		return comp;
 	}
 
 	public void setSpace(byte[] space) {
-		// suffixArrayの前処理は、setSpaceで定義せよ。
+		//spaceに関するへんすうの定義
 		this.space = space;
 		spaceLength = this.space.length;
 		if (spaceLength > 0)
 			spaceReady = true;
 
-		// First, create unsorted suffix array.
+	
+		//suffixArrayの作成
 		suffixArray = new int[spaceLength];
-		// put all suffixes in suffixArray.
+		//suffixArrayの初期化
 		for (int i = 0; i < spaceLength; i++) {
-			suffixArray[i] = i; // Please note that each suffix is expressed by one integer.
+			suffixArray[i] = i; 
 		}
-		//
-		// ここに、int suffixArrayをソートするコードを書け。
-		// もし、mySpace が"ABC"ならば、
-		// suffixArray = { 0, 1, 2} となること求められる。
-		// このとき、printSuffixArrayを実行すると
-		// suffixArray[ 0]= 0:ABC
-		// suffixArray[ 1]= 1:BC
-		// suffixArray[ 2]= 2:C
-		// のようになるべきである。
-		// もし、mySpace が"CBA"ならば
-		// suffixArray = { 2, 1, 0} となることが求めらる。
-		// このとき、printSuffixArrayを実行すると
-		// suffixArray[ 0]= 2:A
-		// suffixArray[ 1]= 1:BA
-		// suffixArray[ 2]= 0:CBA
-		// のようになるべきである。
-
-		// sort by マージソート
-		/// 辞書順は広義単調増加(1が出ないようにする)
+		//suffixArrayをソートする
 		MargeSort(0, spaceLength);
 	}
 
+
 	/**
-	 * 半開区間[left,right)をマージソートでマージを行う
+	 * suffixArrayの半開区間[left, right)をマージソートによってソートする
+	 * left = 4 , right = 7 の時, [4,7)  = 4,5,6の要素についてソートを行う(終点は引数-1になることに注意)
+	 * @param left 区間の始点
+	 * @param right 区間の終点
 	 */
 	private void MargeSort(int left, int right) {
 		if (left + 1 >= right) {// 幅が1以下
@@ -153,8 +118,8 @@ public class FrequencerRefactor implements FrequencerInterface {
 		int halfLength = length / 2;
 		int middle = left + halfLength;
 
-		MargeSort(left, middle);// 前半
-		MargeSort(middle, right);// 後半
+		MargeSort(left, middle);// 前半をソートする
+		MargeSort(middle, right);// 後半をソートする
 
 		// 一旦退避
 		int tmp[] = new int[length];
@@ -166,8 +131,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 		int leftAt = 0, rightAt = halfLength;
 		count = left;
 
-		while (leftAt < halfLength && rightAt < length) {
-
+		while (leftAt < halfLength && rightAt < length) {//どちらかが行き切るまで繰り返す
 			if (suffixCompare(tmp[leftAt], tmp[rightAt]) > 0) {
 				suffixArray[count] = tmp[rightAt++];
 			} else {
@@ -175,12 +139,12 @@ public class FrequencerRefactor implements FrequencerInterface {
 			}
 			++count;
 		}
-		while (leftAt < halfLength) {
-
+		//この時点で左右どちらかが行き切るはず
+		while (leftAt < halfLength) {//左側をすべて行き切るまで
 			suffixArray[count] = tmp[leftAt++];
 			++count;
 		}
-		while (rightAt < length) {
+		while (rightAt < length) {//右側を行き切るまで
 			suffixArray[count] = tmp[rightAt++];
 			++count;
 		}
@@ -202,29 +166,11 @@ public class FrequencerRefactor implements FrequencerInterface {
 		return subByteFrequency(0, this.target.length);
 	}
 
+	
 	public int subByteFrequency(int start, int end) {
-		// start, and end specify a string to search in myTarget,
-		// if myTarget is "ABCD",
-		// start=0, and end=1 means string "A".
-		// start=1, and end=3 means string "BC".
-		// This method returns how many the string appears in my Space.
-		//
-		/*
-		 * This method should be work as follows, but much more efficient.
-		 * int spaceLength = mySpace.length;
-		 * int count = 0;
-		 * for(int offset = 0; offset< spaceLength - (end - start); offset++) {
-		 * boolean abort = false;
-		 * for(int i = 0; i< (end - start); i++) {
-		 * if(myTarget[start+i] != mySpace[offset+i]) { abort = true; break; }
-		 * }
-		 * if(abort == false) { count++; }
-		 * }
-		 */
-		// The following the counting method using suffix array.
-		// 演習の内容は、適切なsubByteStartIndexとsubByteEndIndexを定義することである。
-		int first = subByteStartIndex(start, end);
-		int last = subByteEndIndex(start, end);
+
+		int first = lowerBound(start, end);
+		int last = upperBound(start, end);
 		return last - first;// 半開区間で定義すれば良さそう
 	}
 	// 変更してはいけないコードはここまで。
@@ -270,27 +216,24 @@ public class FrequencerRefactor implements FrequencerInterface {
 		// サイズをtargetの長さに制限して、文字列比較?
 		int comp_targetLength = k - j;
 		int comp_spaceLength = spaceLength - suffixArray[i];
-		int res = 0;// 比較結果
+		int comp = 0;// 比較結果
 		int in_current = 0;// 現在見ている文字
 		int short_letter_length = comp_targetLength < comp_spaceLength ? comp_targetLength : comp_spaceLength;// 文字数が短い方の文字数
-		while (res == 0) {
+		while (comp == 0) {
 			if (in_current >= short_letter_length) {// どちらかの最終文字を超えた時
 				if (comp_spaceLength < comp_targetLength) {
 					return -1;
 				}
 				return 0;
 			}
-			res = this.space[suffixArray[i] + in_current] - this.target[j + in_current];
+			comp = this.space[suffixArray[i] + in_current] - this.target[j + in_current];
 
 			++in_current;
 		}
-		if (res > 0) {
-			return 1;
-		}
-		return -1; // この行は変更しなければならない。
+		return comp;
 	}
 
-	private int subByteStartIndex(int start, int end) {
+	private int lowerBound(int start, int end) {
 		// suffix arrayのなかで、目的の文字列の出現が始まる位置を求めるメソッド=lowerbound
 		// 以下のように定義せよ。
 		// The meaning of start and end is the same as subByteFrequency.
@@ -351,7 +294,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 		return right; // 右端は対象と同じかその後に来る
 	}
 
-	private int subByteEndIndex(int start, int end) {
+	private int upperBound(int start, int end) {
 		// suffix arrayのなかで、目的の文字列の出現しなくなる場所を求めるメソッド=upper bound
 		// 以下のように定義せよ。
 		// The meaning of start and end is the same as subByteFrequency.
@@ -406,16 +349,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 		return right; // 右端は対象よりも後に来るはず
 	}
 
-	// Suffix Arrayを使ったプログラムのホワイトテストは、
-	// privateなメソッドとフィールドをアクセスすることが必要なので、
-	// クラスに属するstatic mainに書く方法もある。
-	// static mainがあっても、呼びださなければよい。
-	// 以下は、自由に変更して実験すること。
-	// 注意：標準出力、エラー出力にメッセージを出すことは、
-	// static mainからの実行のときだけに許される。
-	// 外部からFrequencerを使うときにメッセージを出力してはならない。
-	// 教員のテスト実行のときにメッセージがでると、仕様にない動作をするとみなし、
-	// 減点の対象である。
+
 	public static void main(String[] args) {
 		FrequencerRefactor frequencerObject;
 		try { // テストに使うのに推奨するmySpaceの文字は、"ABC", "CBA", "HHH", "Hi Ho Hi Ho".
@@ -517,11 +451,11 @@ public class FrequencerRefactor implements FrequencerInterface {
 			result = frequencerObject.frequency();
 			except_value = 0;
 			System.out.print("Freq = " + result + " ");
-			if ((except_value == result) && (frequencerObject.subByteEndIndex(0,
+			if ((except_value == result) && (frequencerObject.upperBound(0,
 					frequencerObject.space.length) == frequencerObject.space.length)) {
 				System.out.println("OK");
 			} else {
-				System.out.println("WRONG value : " + result + " end pos : " + frequencerObject.subByteEndIndex(0,
+				System.out.println("WRONG value : " + result + " end pos : " + frequencerObject.upperBound(0,
 						frequencerObject.space.length));
 			}
 			// 探索位置が始点のときのテスト
@@ -531,7 +465,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 			result = frequencerObject.frequency();
 			except_value = 0;
 			System.out.print("Freq = " + result + " ");
-			if ((except_value == result) && (frequencerObject.subByteStartIndex(0,
+			if ((except_value == result) && (frequencerObject.lowerBound(0,
 					frequencerObject.space.length) == 0)) {
 				System.out.println("OK");
 			} else {

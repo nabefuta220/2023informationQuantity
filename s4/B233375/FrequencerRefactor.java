@@ -55,7 +55,8 @@ public class FrequencerRefactor implements FrequencerInterface {
 	 * 
 	 * @param i 比較する文字列1 (S="abcd", i=0 のとき、 S_i = "abcd")
 	 * @param j 比較する文字列2 (S="abcd", j=2 のとき、 S_j = "cd")
-	 * @return 大小比較の結果, S_i > S_j のとき、1以上の値を返し、S_i < S_j のとき、-1以下の値を返す S_i = S_j のとき、0を返す
+	 * @return 大小比較の結果, S_i > S_j のとき、1以上の値を返し、S_i < S_j のとき、-1以下の値を返す S_i = S_j
+	 *         のとき、0を返す
 	 */
 	private int suffixCompare(int i, int j) {
 
@@ -63,11 +64,11 @@ public class FrequencerRefactor implements FrequencerInterface {
 		int comp = 0;// 比較結果
 		int in_current = 0;// 現在見ている文字
 
-		while (comp == 0) {//アルファベットが異なるまで繰り返す
+		while (comp == 0) {// アルファベットが異なるまで繰り返す
 			// 範囲内かどうか見る
 			if (short_letter + in_current >= spaceLength) {// 表示範囲を超える
 				comp = j - i;
-				return comp;//文字が長い方=開始インデックスが早い方を1とする
+				return comp;// 文字が長い方=開始インデックスが早い方を1とする
 			}
 			// 大小比較
 			comp = this.space[i + in_current] - this.space[j + in_current];
@@ -77,28 +78,27 @@ public class FrequencerRefactor implements FrequencerInterface {
 	}
 
 	public void setSpace(byte[] space) {
-		//spaceに関するへんすうの定義
+		// spaceに関する変数の定義
 		this.space = space;
 		spaceLength = this.space.length;
 		if (spaceLength > 0)
 			spaceReady = true;
 
-	
-		//suffixArrayの作成
+		// suffixArrayの作成
 		suffixArray = new int[spaceLength];
-		//suffixArrayの初期化
+		// suffixArrayの初期化
 		for (int i = 0; i < spaceLength; i++) {
-			suffixArray[i] = i; 
+			suffixArray[i] = i;
 		}
-		//suffixArrayをソートする
+		// suffixArrayをソートする
 		MargeSort(0, spaceLength);
 	}
 
-
 	/**
 	 * suffixArrayの半開区間[left, right)をマージソートによってソートする
-	 * left = 4 , right = 7 の時, [4,7)  = 4,5,6の要素についてソートを行う(終点は引数-1になることに注意)
-	 * @param left 区間の始点
+	 * left = 4 , right = 7 の時, [4,7) = 4,5,6の要素についてソートを行う(終点は引数-1になることに注意)
+	 * 
+	 * @param left  区間の始点
 	 * @param right 区間の終点
 	 */
 	private void MargeSort(int left, int right) {
@@ -131,7 +131,7 @@ public class FrequencerRefactor implements FrequencerInterface {
 		int leftAt = 0, rightAt = halfLength;
 		count = left;
 
-		while (leftAt < halfLength && rightAt < length) {//どちらかが行き切るまで繰り返す
+		while (leftAt < halfLength && rightAt < length) {// どちらかが行き切るまで繰り返す
 			if (suffixCompare(tmp[leftAt], tmp[rightAt]) > 0) {
 				suffixArray[count] = tmp[rightAt++];
 			} else {
@@ -139,12 +139,12 @@ public class FrequencerRefactor implements FrequencerInterface {
 			}
 			++count;
 		}
-		//この時点で左右どちらかが行き切るはず
-		while (leftAt < halfLength) {//左側をすべて行き切るまで
+		// この時点で左右どちらかが行き切るはず
+		while (leftAt < halfLength) {// 左側をすべて行き切るまで
 			suffixArray[count] = tmp[leftAt++];
 			++count;
 		}
-		while (rightAt < length) {//右側を行き切るまで
+		while (rightAt < length) {// 右側を行き切るまで
 			suffixArray[count] = tmp[rightAt++];
 			++count;
 		}
@@ -166,7 +166,6 @@ public class FrequencerRefactor implements FrequencerInterface {
 		return subByteFrequency(0, this.target.length);
 	}
 
-	
 	public int subByteFrequency(int start, int end) {
 
 		int first = lowerBound(start, end);
@@ -348,7 +347,6 @@ public class FrequencerRefactor implements FrequencerInterface {
 		} while (right - left >= 2);// 幅が最小になるまで繰り返す
 		return right; // 右端は対象よりも後に来るはず
 	}
-
 
 	public static void main(String[] args) {
 		FrequencerRefactor frequencerObject;

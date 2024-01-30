@@ -1,6 +1,6 @@
 package s4.B233375; // Please modify to s4.Bnnnnnn, where nnnnnn is your student ID. 
 
-import java.util.Objects;
+
 import s4.specification.*;
 
 /* What is imported from s4.specification
@@ -20,6 +20,7 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 	static boolean debugMode = false;
 	boolean targetReady = false;
 	boolean spaceReady = false;
+	private int targetLength;
 	byte[] target; // data to compute its information quantity
 	byte[] space; // Sample space to compute the probability
 	FrequencerInterface myFrequencer; // Object for counting frequency
@@ -29,33 +30,23 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 			System.out.write(space[i]);
 		}
 		System.out.write(' ');
-		for (int i = 0; i < target.length; i++) {
+		for (int i = 0; i < targetLength; i++) {
 			System.out.write(target[i]);
 		}
 		System.out.write(' ');
 	}
 
-	byte[] subBytes(byte[] x, int start, int end) {
-		// corresponding to substring of String for byte[],
-		// It is not implement in class library because internal structure of byte[]
-		// requires copy.
-		// TODO : 呼び出されることが無いコード?
-		byte[] result = new byte[end - start];
-		for (int i = 0; i < end - start; i++) {
-			result[i] = x[start + i];
-		}
-
-		return result;
-	}
-
 	// f: information quantity for a count, -log2(count/sizeof(space))
+
+
 	double iq(int freq) {
 		return -Math.log10((double) freq / (double) space.length) / Math.log10((double) 2.0);
 	}
 
 	public void setTarget(byte[] target) {
 		this.target = target;
-		if (target.length > 0)
+		targetLength = target.length;
+		if (targetLength > 0)
 			targetReady = true;
 	}
 
@@ -72,27 +63,26 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 			return (double) 0.0;
 		if (spaceReady == false)
 			return Double.MAX_VALUE;
-		if (target.length == 0) {
-			System.err.println("reach length = 0");// # TODO : 余計なコメントは消せそう
+		if (targetLength == 0) {
 			return (double) 0.0; // Is it needed?
-
 		}
 		myFrequencer.setTarget(target);
 
-		double[] suffixEstimation = new double[target.length + 1];
 		// suffixEstimation[i] -> myTarget[i,length)をtargetとしたときに情報量を最小限に分割したときの最小値
 		// init : suffixEstimation[length]= 0 (targetが空のときは情報量が0となる)
-		// trans: suffixEstimation[i] = min(j=i to length)(suffixEstimation[j] + iq[i,j)
-		// )
+		// trans: suffixEstimation[i] = min(j=i to length)(suffixEstimation[j] +
+		// iq[i,j))
 		// find : suffixEstimation[0]
+		double[] suffixEstimation = new double[targetLength + 1];
 
-		for (int i = 0; i < target.length; i++) {
+
+		for (int i = 0; i < targetLength; i++) {
 			suffixEstimation[i] = Double.MAX_VALUE;
 		}
 
-		suffixEstimation[target.length] = (double) 0.0; // IE("") = 0.0; shortest suffix of target
+		suffixEstimation[targetLength] = (double) 0.0; // IE("") = 0.0; shortest suffix of target
 
-		for (int n = target.length - 1; n >= 0; n--) {
+		for (int n = targetLength- 1; n >= 0; n--) {
 			// target = "abcdef..", n = 4 for example, subByte(0, 4) = "abcd",
 			// IE("abcd") = min( iq(#a)+IE("bcd"),
 			// iq(#ab)+IE("cd"),
@@ -104,25 +94,22 @@ public class InformationEstimatorRefactor implements InformationEstimatorInterfa
 			// suffixEstimation[1] = IE("bcd"); subByte(0,1)= "a",
 			// suffixEstimation[0] = IE("abcd");
 			//
-			double value = Double.MAX_VALUE; // for suffixEstimation[n] #TODO : 最大値を別の名前で置き換えたい
-			double value1 = Double.MAX_VALUE; // for candidate of suffixEstimation[n]
+			double value_min = Double.MAX_VALUE; // for suffixEstimation[n] #TODO : 最大値を別の名前で置き換えたい
+			double value_candidate = Double.MAX_VALUE; // for candidate of suffixEstimation[n]
 			int start = n;
-			for (int end = n + 1; end <= target.length; end++) {
+			for (int end = n + 1; end <= targetLength; end++) {
 				int freq = myFrequencer.subByteFrequency(start, end);
-				if (freq == 0) {
+				if (freq == 0) {//この時点で他の値もMAX_VALUEになるはず
 					return Double.MAX_VALUE;
 				}
-
-				// You should compute value1 here, (example is iq(#ab)+IE("cd") above),
-				// using this freq and apropriate SuffixEstimation[somewhere].
-				value1 = iq(freq) + suffixEstimation[end];
-				if (value > value1)
-					value = value1; // compute minimum of value1,
+				value_candidate = iq(freq) + suffixEstimation[end];
+				if (value_min > value_candidate)
+					value_min = value_candidate; // compute minimum of value1,
 			}
 			if (debugMode) {
-				System.out.println("suffixEstimation[" + n + "] = " + value);
+				System.out.println("suffixEstimation[" + n + "] = " + value_min);
 			}
-			suffixEstimation[n] = value;
+			suffixEstimation[n] = value_min;
 		}
 		return suffixEstimation[0];
 
